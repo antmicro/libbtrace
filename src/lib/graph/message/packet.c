@@ -127,14 +127,6 @@ struct bt_message *create_packet_message(
 		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-val=%" PRIu64,
 		stream, stream_class, with_cs, raw_value);
-	BT_ASSERT_PRE_FROM_FUNC(api_func, "without-default-clock-snapshot",
-		!need_cs ? !with_cs : true,
-		"Unexpected stream class configuration when creating "
-		"a packet beginning or end message: "
-		"no default clock snapshot is needed, but one was provided: "
-		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
-		"cs-val=%" PRIu64,
-		stream, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating packet message object: "
 		"%![packet-]+a, %![stream-]+s, %![sc-]+S",
 		packet, stream, stream_class);
