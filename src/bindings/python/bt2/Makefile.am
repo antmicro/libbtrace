@@ -7,6 +7,10 @@
 # linker path.
 AM_LDFLAGS += -L$(top_builddir)/src/lib/.libs
 
+if BUILD_MACOS
+AM_LDFLAGS += -undefined suppress -flat_namespace
+endif
+
 INSTALLED_FILES=$(builddir)/installed_files.txt
 
 SWIG_INTERFACE_FILES =					\

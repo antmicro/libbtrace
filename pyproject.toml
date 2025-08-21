@@ -1,37 +1,60 @@
-# SPDX-FileCopyrightText: 2024 EfficiOS Inc.
+# Copyright (c) 2025 Analog Devices, Inc.
+# Copyright (c) 2025 Antmicro <www.antmicro.com>
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: Apache-2.0
 
-[tool.black]
-  include = '''
-  (
-       \.pyi?$
-     | \.py\.in$
-  )
-  '''
-  exclude = '''
-  (
-       src/bindings/python/bt2/build/
-     | src/bindings/python/bt2/setup\.py$
-     | src/bindings/python/bt2/bt2/local_typing\.py$
-     | src/bindings/python/bt2/bt2/native_bt\.py$
-     | src/bindings/python/bt2/bt2/version\.py$
-     | tests/utils/python/normand\.py$
-     | tests/utils/python/typing/typing\.py$
-     | tests/utils/python/tap
 
-  )
-  '''
+[build-system]
+requires = ["setuptools"]
 
-[tool.isort]
-profile = "black"
-extend_skip_glob = [
-    "src/bindings/python/bt2/bt2/local_typing.py",
-    "tests/utils/python/tap",
-    "tests/utils/python/normand.py",
-    "tests/utils/python/typing/typing.py",
+[project]
+name = "bt2"
+version = "0.0.1"
+description = "libbtrace - Parser for CTF traces based on parts of Babeltrace 2"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = [
+  "LICENSES/*.txt",
+  "LICENSE",
 ]
-length_sort = true
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Logging",
+]
 
-[tool.pyright]
-reportPrivateUsage = false
+
+[tool.setuptools]
+packages = ["bt2"]
+package-data.bt2 = ["*.so", "*.so.0", "*.dylib"]
+ext-modules = [{ name = "__bt2_dummy_ext.so", sources = ["bt2/dummy_ext.c"] }]
+
+[tool.setuptools.cmdclass]
+build = "custom_build.build"
+
+[tool.cibuildwheel]
+test-requires = "pytest"
+test-command = "pytest {project}/test"
+skip = "*-musllinux*"
+
+[tool.cibuildwheel.container-engine]
+name = "docker"
+disable-host-mount = false
+
+[tool.cibuildwheel.linux]
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux*"
+before-all = [
+  "yum install elfutils-libelf-devel patchelf patch swig elfutils-libs flex -y",
+]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-all = [
+  "apk add elfutils libdw patchelf patch swig flex bison",
+]

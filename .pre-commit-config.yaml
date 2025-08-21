@@ -25,3 +25,18 @@ repos:
         types: [file]
         files: \.(py|py.in)$
         exclude: '(src/bindings/python/bt2/bt2/local_typing.py|tests/utils/python/normand.py|tests/utils/python/tap/.*|tests/utils/python/typing/.*)'
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+    - id: clang-format
+      files: \.(cpp|hpp)$
+      exclude: |
+        (?x)^(
+            tests/.*|
+            src/cpp-common/vendor/.*|
+            src/cpp-common/bt2/.*|
+            src/plugins/ctf/common/src/metadata/tsdl/parser.*|
+            src/plugins/ctf/common/src/metadata/tsdl/lexer.*
+        )$
+
+      args: [-i, --style=file]

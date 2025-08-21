@@ -112,3 +112,9 @@ cscope*
 htmlcov/
 /install/
 TAGS
+
+/dist
+/build
+/.venv
+/venv
+/bt2

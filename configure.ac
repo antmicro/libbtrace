@@ -57,35 +57,115 @@ AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
 
+##        ##
+## Macros ##
+##        ##
+
+AC_DEFUN([CONFIG_NAME], [dnl
+enable_[]patsubst([$1], -, _)[]dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE], [ dnl
+  AC_ARG_ENABLE([$1],
+    AS_HELP_STRING([--patsubst(patsubst([$3], yes, disable), no, enable)-$1], [$2]), [
+CONFIG_NAME($1)=${enableval}
+    ], [
+CONFIG_NAME($1)=$3
+    ]
+  )
+])
+
+AC_DEFUN([CONFIG_FEATURE_SET], [ dnl
+CONFIG_NAME($1)=$2 dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE_ENABLED], [dnl
+test "x$[]CONFIG_NAME($1)" = xyes[]dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE_NOT_ENABLED], [dnl
+test "x$[]CONFIG_NAME($1)" != xyes[]dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE_DISABLED], [dnl
+test "x$[]CONFIG_NAME($1)" = xno[]dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE_UNDEF], [dnl
+test "x$[]CONFIG_NAME($1)" = x[]dnl
+])
+
+AC_DEFUN([CONFIG_FEATURE_IF_ENABLED], [ dnl
+  AS_IF([CONFIG_FEATURE_ENABLED($1)], [ dnl
+    $2 dnl
+  ], [: dnl
+    $3 dnl
+  ])
+])
+
+AC_DEFUN([CONFIG_FEATURE_IF_DISABLED], [ dnl
+  AS_IF([CONFIG_FEATURE_DISABLED($1)], [ dnl
+    $2 dnl
+  ], [: dnl
+    $3 dnl
+  ])
+])
+
+AC_DEFUN([CONFIG_FEATURE_IF_NOT_ENABLED], [ dnl
+  AS_IF([CONFIG_FEATURE_NOT_ENABLED($1)], [ dnl
+    $2 dnl
+  ], [: dnl
+    $3 dnl
+  ])
+])
+
+AC_DEFUN([CONFIG_FEATURE_IF_UNDEF], [ dnl
+  AS_IF([CONFIG_FEATURE_UNDEF($1)], [ dnl
+    $2 dnl
+  ], [: dnl
+    $3 dnl
+  ])
+])
+
+CONFIG_FEATURE([testoption], [Feature description asdsadsad], [no])
+
 ##                      ##
 ## OS specific defaults ##
 ##                      ##
 
+MACOS=no
 MINGW32=no
 LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
-  [solaris*|darwin*],
+  [solaris*],
     [
-      AE_FEATURE_DISABLE([debug-info])
+      CONFIG_FEATURE_SET([debug-info], [no])
+    ],
+  [darwin*],
+    [
+      CONFIG_FEATURE_SET([debug-info], [no])
+      MACOS=yes
     ],
   [freebsd*],
     [
-      AE_FEATURE_DISABLE([debug-info])
+      CONFIG_FEATURE_SET([debug-info], [no])
     ],
   [cygwin*],
     [
-      AE_FEATURE_DISABLE([debug-info])
+      CONFIG_FEATURE_SET([debug-info], [no])
       LT_NO_UNDEFINED="-no-undefined"
     ],
   [mingw*],
     [
       MINGW32=yes
-      AE_FEATURE_DISABLE([debug-info])
+      CONFIG_FEATURE_SET([debug-info], [no])
       LT_NO_UNDEFINED="-no-undefined"
     ]
 )
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
+AM_CONDITIONAL([BUILD_MACOS], [test "x$MACOS" = "xyes"])
+
 AC_SUBST(LT_NO_UNDEFINED)
 
 
@@ -105,13 +185,9 @@ AS_IF([test "$ac_cv_prog_cc_c99" = "no"], [AC_MSG_ERROR([The compiler does not s
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 
-# Make sure the C compiler supports __attributes__
-AX_C___ATTRIBUTE__
-AS_IF([test "x$ax_cv___attribute__" != "xyes"],
-  [AC_MSG_ERROR([The compiler does not support __attribute__ extensions])])
-
 # Make sure we have pthread support
-AX_PTHREAD([], [AC_MSG_ERROR([Could not configure pthread support])])
+PTHREAD_CFLAGS="-pthread"
+AC_SUBST([PTHREAD_CFLAGS])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -208,21 +284,6 @@ AC_CHECK_PROGS([XMLTO], [xmlto])
 AC_PROG_YACC
 AX_PROG_BISON_VERSION([2.5], [have_bison=yes])
 
-AS_IF([test "x$have_bison" != "xyes"], [
-  AE_IF_IN_GIT_REPO([
-    AC_MSG_FAILURE([dnl
-Bison >= 2.5 is required when building from the Git repository. You can
-set the YACC variable to override automatic detection.
-    ])
-  ], [
-    AC_MSG_WARN([dnl
-Missing Bison >= 2.5. Note that the parser files are already built in
-this distribution tarball, so Bison is only needed if you intend to
-modify their sources. You can set the YACC variable to override automatic
-detection.
-    ])
-  ])
-])
 AM_CONDITIONAL([HAVE_BISON], [test "x$have_bison" = "xyes"])
 
 # check for flex
@@ -231,21 +292,6 @@ AM_CONDITIONAL([HAVE_BISON], [test "x$have_bison" = "xyes"])
 AC_PROG_LEX([noyywrap])
 AX_PROG_FLEX_VERSION([2.5.35], [have_flex=yes])
 
-AS_IF([test "x$have_flex" != "xyes"], [
-  AE_IF_IN_GIT_REPO([
-    AC_MSG_FAILURE([dnl
-Flex >= 2.5.35 is required when building from the Git repository. You can
-set the LEX variable to override automatic detection.
-    ])
-  ], [
-    AC_MSG_WARN([dnl
-Missing Flex >= 2.5.35. Note that the lexer files are already built in
-this distribution tarball, so Flex is only needed if you intend to
-modify their sources. You can set the LEX variable to override automatic
-detection.
-    ])
-  ])
-])
 AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
 
 # Always check for python, we will fail later if some features require it and
@@ -272,15 +318,6 @@ AM_PATH_PYTHON([3.4], [
       AC_MSG_CHECKING([Python include flags])
       PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
       AC_MSG_RESULT([$PYTHON_INCLUDE])
-    ])
-
-    AS_IF([test "x$PYTHON_LDFLAGS" = "x"], [
-      AC_MSG_CHECKING([Python library flags])
-      # Python 3.8+ requires that we pass --embed to get the -lpython3.x flag.
-      AS_IF([! PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags --embed`], [
-        PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
-      ])
-      AC_MSG_RESULT([$PYTHON_LDFLAGS])
     ])
   ])
 ], [:])
@@ -403,67 +440,57 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 
 # Python bindings
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([python-bindings],[build the Python bindings])
+CONFIG_FEATURE([python-bindings],[build the Python bindings], [no])
 
 # Python bindings documentation
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([python-bindings-doc],[build the Python bindings documentation])
+CONFIG_FEATURE([python-bindings-doc],[build the Python bindings documentation], [no])
 
 # Python plugins
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([python-plugins],[enable the Python plugins support for the library and converter])
+CONFIG_FEATURE([python-plugins],[enable the Python plugins support for the library and converter], [no])
 
 # Debug info
 # Enabled by default, except on some platforms
-AE_FEATURE_DEFAULT_ENABLE
-AE_FEATURE([debug-info],[disable the debug info support (default on macOS, Solaris and Windows)])
+CONFIG_FEATURE([debug-info],[disable the debug info support (default on macOS, Solaris and Windows)], [yes])
 
 # API documentation
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([api-doc],[build the HTML API documentation])
+CONFIG_FEATURE([api-doc],[build the HTML API documentation], [no])
 
 # Built-in plugins
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([built-in-plugins],[Statically-link in-tree plug-ins into the ‘babeltrace2’ executable])
+CONFIG_FEATURE([built-in-plugins],[Statically-link in-tree plug-ins into the ‘babeltrace2’ executable], [no])
 
 # Built-in python plugin support
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([built-in-python-plugin-support],[Statically-link Python plugin support into the babeltrace library])
+CONFIG_FEATURE([built-in-python-plugin-support],[Statically-link Python plugin support into the babeltrace library], [no])
 
 # Man pages
 # Enabled by default
-AE_FEATURE_DEFAULT_ENABLE
-AE_FEATURE([man-pages],[Do not build and install man pages (already built in a distributed tarball])
+CONFIG_FEATURE([man-pages],[Do not build and install man pages (already built in a distributed tarball], [yes])
 
 # When given, add -Werror to WARN_CFLAGS and WARN_CXXFLAGS.
 # Disabled by default
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([Werror],[Treat compiler warnings as errors.])
+CONFIG_FEATURE([Werror],[Treat compiler warnings as errors.], [no])
 
 # When given, build with AddressSanitizer.
-AE_FEATURE_DEFAULT_DISABLE
-AE_FEATURE([asan],[Build with AddressSanitizer.])
-AE_FEATURE([ubsan],[Build with UndefinedBehaviorSanitizer.])
+CONFIG_FEATURE([asan],[Build with AddressSanitizer.], [no])
+CONFIG_FEATURE([ubsan],[Build with UndefinedBehaviorSanitizer.], [no])
 
 ##                                          ##
 ## Check for conflicting features selection ##
 ##                                          ##
 
 # Check for conflicting Python related features user choices.
-AE_IF_FEATURE_ENABLED([python-plugins], [
-  AE_IF_FEATURE_UNDEF([python-bindings], [
+CONFIG_FEATURE_IF_ENABLED([python-plugins], [
+  CONFIG_FEATURE_IF_UNDEF([python-bindings], [
     # --enable-python-plugins was provided but --enable-python-bindings was
     # omitted. Turn the Python bindings ON anyway because it's needed to
     # use the Python plugins.
-    AE_FEATURE_ENABLE([python-bindings])
+    CONFIG_FEATURE_SET([python-bindings], [yes])
   ], [
-    AE_IF_FEATURE_DISABLED([python-bindings], [
+    CONFIG_FEATURE_IF_DISABLED([python-bindings], [
       # --enable-python-plugins _and_ --disable-python-bindings were
       # used. This is invalid because Python plugins need the Python
       # bindings to be useful.
@@ -473,17 +500,17 @@ AE_IF_FEATURE_ENABLED([python-plugins], [
 ])
 
 # Check for conflicting optional features user choices
-AE_IF_FEATURE_ENABLED([built-in-plugins], [
+CONFIG_FEATURE_IF_ENABLED([built-in-plugins], [
   # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-  AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(‘--enable-static’ must be used to bundle plug-ins in the ‘babeltrace2’ executable)])
-  AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(‘--disable-shared’ must be used to bundle plug-ins in the ‘babeltrace2’ executable)])
+  CONFIG_FEATURE_IF_NOT_ENABLED([static], [AC_MSG_ERROR(‘--enable-static’ must be used to bundle plug-ins in the ‘babeltrace2’ executable)])
+  CONFIG_FEATURE_IF_ENABLED([shared], [AC_MSG_ERROR(‘--disable-shared’ must be used to bundle plug-ins in the ‘babeltrace2’ executable)])
 ])
 
-AE_IF_FEATURE_ENABLED([built-in-python-plugin-support], [
-  AE_IF_FEATURE_NOT_ENABLED([python-plugins], [AC_MSG_ERROR([‘--enable-python-plugins’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable])])
+CONFIG_FEATURE_IF_ENABLED([built-in-python-plugin-support], [
+  CONFIG_FEATURE_IF_NOT_ENABLED([python-plugins], [AC_MSG_ERROR([‘--enable-python-plugins’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable])])
   # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-  AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(‘--enable-static’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable)])
-  AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(‘--disable-shared’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable)])
+  CONFIG_FEATURE_IF_NOT_ENABLED([static], [AC_MSG_ERROR(‘--enable-static’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable)])
+  CONFIG_FEATURE_IF_ENABLED([shared], [AC_MSG_ERROR(‘--disable-shared’ must be used to bundle Python plugin support in the ‘babeltrace2’ executable)])
 ])
 
 
@@ -491,46 +518,52 @@ AE_IF_FEATURE_ENABLED([built-in-python-plugin-support], [
 ## Set automake variables for optional feature conditionnals in Makefile.am ##
 ##                                                                          ##
 
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], AE_IS_FEATURE_ENABLED([python-bindings]))
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], AE_IS_FEATURE_ENABLED([python-bindings-doc]))
-AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], AE_IS_FEATURE_ENABLED([python-plugins]))
-AM_CONDITIONAL([ENABLE_DEBUG_INFO], AE_IS_FEATURE_ENABLED([debug-info]))
-AM_CONDITIONAL([ENABLE_API_DOC], AE_IS_FEATURE_ENABLED([api-doc]))
-AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], AE_IS_FEATURE_ENABLED([built-in-plugins]))
-AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], AE_IS_FEATURE_ENABLED([built-in-python-plugin-support]))
-AM_CONDITIONAL([ENABLE_MAN_PAGES], AE_IS_FEATURE_ENABLED([man-pages]))
-AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins]))
-AM_CONDITIONAL([ENABLE_ASAN], AE_IS_FEATURE_ENABLED([asan]))
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], CONFIG_FEATURE_ENABLED([python-bindings]))
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], CONFIG_FEATURE_ENABLED([python-bindings-doc]))
+AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], CONFIG_FEATURE_ENABLED([python-plugins]))
+AM_CONDITIONAL([ENABLE_DEBUG_INFO], CONFIG_FEATURE_ENABLED([debug-info]))
+AM_CONDITIONAL([ENABLE_API_DOC], CONFIG_FEATURE_ENABLED([api-doc]))
+AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], CONFIG_FEATURE_ENABLED([built-in-plugins]))
+AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], CONFIG_FEATURE_ENABLED([built-in-python-plugin-support]))
+AM_CONDITIONAL([ENABLE_MAN_PAGES], CONFIG_FEATURE_ENABLED([man-pages]))
+AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], CONFIG_FEATURE_ENABLED([python-bindings]) || CONFIG_FEATURE_ENABLED([python-plugins]))
+AM_CONDITIONAL([ENABLE_ASAN], CONFIG_FEATURE_ENABLED([asan]))
 
 
 ##                                                                    ##
 ## Set defines for optional features conditionnals in the source code ##
 ##                                                                    ##
 
-AE_IF_FEATURE_ENABLED([built-in-plugins],
+CONFIG_FEATURE_IF_ENABLED([built-in-plugins],
   [AC_DEFINE([BT_BUILT_IN_PLUGINS], [1], [Define to ‘1’ to register plug-in attributes in static executable sections])]
 )
 
-AE_IF_FEATURE_ENABLED([built-in-python-plugin-support],
+CONFIG_FEATURE_IF_ENABLED([built-in-python-plugin-support],
   [AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to ‘1’ to register plug-in attributes in static executable sections])]
 )
 
-AE_IF_FEATURE_ENABLED([python-plugins], [ENABLE_PYTHON_PLUGINS=1], [ENABLE_PYTHON_PLUGINS=0])
+CONFIG_FEATURE_IF_ENABLED([python-plugins], [ENABLE_PYTHON_PLUGINS=1], [ENABLE_PYTHON_PLUGINS=0])
 AC_SUBST([ENABLE_PYTHON_PLUGINS])
 
-AE_IF_FEATURE_ENABLED([debug-info], [ENABLE_DEBUG_INFO_VAL=1], [ENABLE_DEBUG_INFO_VAL=0])
+CONFIG_FEATURE_IF_ENABLED([debug-info], [ENABLE_DEBUG_INFO_VAL=1], [ENABLE_DEBUG_INFO_VAL=0])
 AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
-AE_IF_FEATURE_ENABLED([asan], [ENABLE_ASAN=1], [ENABLE_ASAN=0])
+CONFIG_FEATURE_IF_ENABLED([asan], [ENABLE_ASAN=1], [ENABLE_ASAN=0])
 AC_SUBST([ENABLE_ASAN])
 
 ##                                          ##
 ## Check for optional features dependencies ##
 ##                                          ##
 
+AC_CHECK_PROGS([SWIG], [swig])
+
 # The Python bindings require SWIG
-AE_IF_FEATURE_ENABLED([python-bindings],
-  [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
+CONFIG_FEATURE_IF_ENABLED([python-bindings],
+  AS_IF([test x"$SWIG" != x"swig"], [
+    AC_MSG_ERROR([Cannot find SWIG.])
+  ])
+  SWIG_LIB=`$SWIG -swiglib | tr -d '\r\n'`
+  AC_SUBST([SWIG_LIB])
 )
 
 AS_IF([test "$PYTHON" != :], [have_python=yes], [have_python=no])
@@ -547,7 +580,7 @@ AS_IF([test "x$have_python" = xyes], [
 
 AM_CONDITIONAL([HAVE_PYTHON_312_OR_GREATER], [test "x$have_python_312_or_greater" = xyes])
 
-AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins])], [
+AS_IF([CONFIG_FEATURE_ENABLED([python-bindings]) || CONFIG_FEATURE_ENABLED([python-plugins])], [
   AS_IF([test "x$have_python_dev" = xno], [
     AC_MSG_ERROR([Cannot find a suitable ‘python-config’. You can override the ‘python-config’ path with the ‘PYTHON_CONFIG’ environment variable.])
   ])
@@ -563,20 +596,20 @@ AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python
   ])
 ])
 
-AE_IF_FEATURE_ENABLED([python-bindings-doc],
+CONFIG_FEATURE_IF_ENABLED([python-bindings-doc],
   [
     AE_CHECK_PYTHON_SPHINX([PYTHON])
     AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno], [
       AC_MSG_ERROR([The Sphinx package for Python 3 is required to build the Python bindings documentation])
     ])
 
-    AE_IF_FEATURE_NOT_ENABLED([python-bindings], [
+    CONFIG_FEATURE_IF_NOT_ENABLED([python-bindings], [
       AC_MSG_ERROR([The Python bindings are required to build their documentation])
     ])
   ]
 )
 
-AE_IF_FEATURE_ENABLED([debug-info], [
+CONFIG_FEATURE_IF_ENABLED([debug-info], [
   # Check if libelf and libdw are present
   PKG_CHECK_MODULES([ELFUTILS], [libelf >= 0.154 libdw >= 0.154],
     [
@@ -595,7 +628,7 @@ AE_IF_FEATURE_ENABLED([debug-info], [
 ])
 AC_SUBST([ELFUTILS_LIBS])
 
-AE_IF_FEATURE_ENABLED([api-doc],
+CONFIG_FEATURE_IF_ENABLED([api-doc],
   [
     DX_DOXYGEN_FEATURE(ON)
     DX_DOT_FEATURE(OFF)
@@ -616,29 +649,6 @@ AE_IF_FEATURE_ENABLED([api-doc],
 
 have_asciidoc_xmlto=no
 warn_prebuilt_man_pages=no
-
-AE_IF_FEATURE_ENABLED([man-pages], [
-  AS_IF([test "x$ASCIIDOC" = "x" || test "x$XMLTO" = "x"], [
-    AE_IF_IN_GIT_REPO([
-      # this is an error because we're in the Git repo, which
-      # means the man pages are not already generated for us,
-      # thus asciixmlto are required because we were asked
-      # to build the man pages
-      AC_MSG_ERROR([
-You need asciidoc and xmlto to build the Babeltrace man pages. Use
-‘--disable-man-pages’ to disable building the man pages, in which case
-they will not be installed.
-      ])
-    ], [
-      # only warn here: since we're in the tarball, the man
-      # pages should already be generated at this point, thus
-      # asciidoc/xmlto are not strictly required
-      warn_prebuilt_man_pages=yes
-    ])
-  ], [
-    have_asciidoc_xmlto=yes
-  ])
-])
 
 # export AsciiDoc and xmlto existence
 AM_CONDITIONAL([HAVE_ASCIIDOC_XMLTO], [test "x$have_asciidoc_xmlto" = "xyes"])
@@ -661,7 +671,7 @@ AS_IF([test "x$exec_prefix" = xNONE], [
 AC_SUBST(LIBDIR)
 
 # If --enable-asan is used...
-AE_IF_FEATURE_ENABLED([asan], [
+CONFIG_FEATURE_IF_ENABLED([asan], [
   # ... add -fsanitize=address to the *FLAGS variables.
   ASAN_CFLAGS="-fsanitize=address"
   ASAN_CXXFLAGS="-fsanitize=address"
@@ -669,7 +679,7 @@ AE_IF_FEATURE_ENABLED([asan], [
 ])
 
 # If --enable-ubsan is used...
-AE_IF_FEATURE_ENABLED([ubsan], [
+CONFIG_FEATURE_IF_ENABLED([ubsan], [
   # ... add -fsanitize=undefined to the *FLAGS variables.
   UBSAN_CFLAGS="-fsanitize=undefined"
   UBSAN_CXXFLAGS="-fsanitize=undefined"
@@ -771,8 +781,8 @@ AX_APPEND_COMPILE_FLAGS([WARN_FLAGS_LIST], [WARN_CXXFLAGS], [-Werror])
 AC_LANG([C])
 AX_APPEND_COMPILE_FLAGS([WARN_FLAGS_LIST], [WARN_CFLAGS], [-Werror])
 
-AE_IF_FEATURE_ENABLED([Werror], [WARN_CXXFLAGS="${WARN_CXXFLAGS} -Werror"])
-AE_IF_FEATURE_ENABLED([Werror], [WARN_CFLAGS="${WARN_CFLAGS} -Werror"])
+CONFIG_FEATURE_IF_ENABLED([Werror], [WARN_CXXFLAGS="${WARN_CXXFLAGS} -Werror"])
+CONFIG_FEATURE_IF_ENABLED([Werror], [WARN_CFLAGS="${WARN_CFLAGS} -Werror"])
 
 # The test used in AX_APPEND_COMPILE_FLAGS, generated using AC_LANG_PROGRAM, is
 # written in such a way that it triggers warnings with the following warning
@@ -825,161 +835,12 @@ AC_CONFIG_FILES([
   src/bindings/python/bt2/setup.py
   src/cli/Makefile
   src/Makefile
-  tests/bitfield/Makefile
-  tests/ctf-writer/Makefile
-  tests/lib/Makefile
-  tests/Makefile
-  tests/param-validation/Makefile
-  tests/plugins/Makefile
-  tests/plugins/src.ctf.fs/Makefile
-  tests/plugins/src.ctf.fs/succeed/Makefile
-  tests/plugins/sink.ctf.fs/Makefile
-  tests/plugins/sink.ctf.fs/succeed/Makefile
-  tests/plugins/flt.lttng-utils.debug-info/Makefile
-  tests/plugins/flt.utils.muxer/Makefile
-  tests/plugins/flt.utils.muxer/succeed/Makefile
-  tests/plugins/flt.utils.trimmer/Makefile
-  tests/plugins/sink.text.pretty/Makefile
-  tests/utils/env.sh
-  tests/utils/Makefile
-  tests/utils/tap/Makefile
 ])
 
 AC_OUTPUT
 
-#
-# Mini-report on what will be built.
-#
-
-AE_PPRINT_INIT
-AE_PPRINT_SET_INDENT(1)
-AE_PPRINT_SET_TS(38)
-
-AS_ECHO
-
-AS_IF([test -n "bt_version_name"], [
-  AS_ECHO("${AE_PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION \"bt_version_name\"$AE_PPRINT_COLOR_RST")
-], [
-  AS_ECHO("${AE_PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION")
-])
-
-AS_ECHO
-
-AS_IF([test -n "bt_version_description"], [
-  AS_IF([test -n "$FOLD"], [
-    AS_ECHO("`AS_ECHO("bt_version_description") | $FOLD -s`")
-  ], [
-    AS_ECHO("bt_version_description")
-  ])
-
-  AS_ECHO
-])
-
-AE_PPRINT_SUBTITLE([System])
-
-# Target architecture we're building for.
-target_arch=$host_cpu
-[
-for f in $CFLAGS; do
-  if test $f = "-m32"; then
-    target_arch="32-bit"
-  elif test $f = "-m64"; then
-    target_arch="64-bit"
-  fi
-done
-]
-
-AE_PPRINT_PROP_STRING([Target architecture], $target_arch)
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Python 3 language support])
-test "x$have_python" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL([Have Python interpreter], $value)
-test "x$have_python_dev" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL([Have Python development libraries], $value)
-test "x$enable_python_bindings" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([Python bindings], $value, [To enable, use ‘--enable-python-bindings’])
-test "x$enable_python_plugins" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([Python plugin support], $value, [To enable, use ‘--enable-python-plugins’])
-AS_IF([test "x$have_python" = "xyes"], [
-  AE_PPRINT_PROP_STRING([Python interpreter path], [$PYTHON])
-])
-AS_IF([test "x$have_python_dev" = "xyes"], [
-  AE_PPRINT_PROP_STRING([python-config path], [$PYTHON_CONFIG])
-  AE_PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
-  AE_PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
-])
-AE_IF_FEATURE_ENABLED([python-bindings], [
-  AE_PPRINT_PROP_STRING([SWIG executable], [$SWIG])
-  AE_PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
-])
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Plugins])
-AE_PPRINT_PROP_BOOL(['ctf' plugin], 1)
-test "x$enable_debug_info" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM(['lttng-utils' plugin], $value, [To enable, use ‘--enable-debug-info’])
-AE_PPRINT_PROP_BOOL(['text' plugin], 1)
-AE_PPRINT_PROP_BOOL(['utils' plugin], 1)
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Built-in features])
-test "x$enable_built_in_plugins" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([Built-in plugins], $value, [To enable, use ‘--enable-built-in-plugins’])
-test "x$enable_built_in_python_plugin_support" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([Built-in Python plugin support], $value, [To enable, use ‘--enable-built-in-python-plugin-support’])
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Documentation])
-
 # man pages build enabled/disabled
 m4_pushdef([build_man_pages_msg], [Build and install man pages])
-
-AE_IF_FEATURE_ENABLED([man-pages], [
-  AE_IF_IN_GIT_REPO([
-    AE_PPRINT_PROP_BOOL([build_man_pages_msg], 1)
-  ], [
-    AS_IF([test "x$have_asciidoc_xmlto" = "xyes"], [
-      AE_PPRINT_PROP_BOOL([build_man_pages_msg], 1)
-    ], [
-      AE_PPRINT_PROP_STRING([build_man_pages_msg],
-        [${AE_PPRINT_COLOR_BLDGRN}yes (already built)],
-        $AE_PPRINT_COLOR_SUBTITLE)
-    ])
-  ])
-], [
-  AE_PPRINT_PROP_BOOL_CUSTOM([build_man_pages_msg], 0, [To build man pages, use ‘--enable-man-pages’])
-])
-
 m4_popdef([build_man_pages_msg])
-
-test "x$enable_api_doc" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([HTML API documentation], $value, [To build documentation, use ‘--enable-api-doc’])
-test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
-AE_PPRINT_PROP_BOOL_CUSTOM([Python bindings documentation], $value, [To build the Python bindings documentation, use ‘--enable-python-bindings-doc’])
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Logging])
-AE_PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
-
-AS_ECHO
-AE_PPRINT_SUBTITLE([Special build modes])
-AE_PPRINT_PROP_BOOL_CUSTOM([Debug mode], $BABELTRACE_DEBUG_MODE, [To enable, set the BABELTRACE_DEBUG_MODE environment variable to 1])
-AE_PPRINT_PROP_BOOL_CUSTOM([Developer mode], $BABELTRACE_DEV_MODE, [To enable, set the BABELTRACE_DEV_MODE environment variable to 1])
-
-report_bindir="`eval eval echo $bindir`"
-report_libdir="`eval eval echo $libdir`"
-report_sysconfdif="`eval eval echo $sysconfdir`"
-report_pluginsdir="`eval eval eval echo $BABELTRACE_PLUGINS_DIR`"
-report_pluginprovidersdir="`eval eval eval echo $BABELTRACE_PLUGIN_PROVIDERS_DIR`"
-
-# Print the bindir and libdir this `make install' will install into.
-AS_ECHO
-AE_PPRINT_SUBTITLE([Install directories])
-AE_PPRINT_PROP_STRING([Binaries], [$report_bindir])
-AE_PPRINT_PROP_STRING([Libraries], [$report_libdir])
-AE_PPRINT_PROP_STRING([Plugins], [$report_pluginsdir])
-AE_PPRINT_PROP_STRING([Plugin providers], [$report_pluginprovidersdir])
-AE_PPRINT_PROP_STRING([Configuration], [$report_sysconfdif])
 
 # vim: shiftwidth=2 softtabstop=2 expandtab
