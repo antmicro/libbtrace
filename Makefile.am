@@ -21,7 +21,6 @@ dist_noinst_DATA = CodingStyle.md
 EXTRA_DIST = \
 	.reuse/dep5 \
 	LICENSES/Autoconf-exception-2.0.txt \
-	LICENSES/BSD-2-Clause.txt \
 	LICENSES/BSD-4-Clause.txt \
 	LICENSES/BSL-1.0.txt \
 	LICENSES/CC0-1.0.txt \
