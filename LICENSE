@@ -22,10 +22,31 @@ This applies to:
 	src/plugins/lttng-utils/debug-info/crc32.h
 
 
+The list header file is provided under the terms of the Apache License 2.0:
 
+	SPDX-License-Identifier: Apache-2.0
 
+According with:
 
+	LICENSES/APACHE-2.0
 
+This applies to:
+
+	src/common/list.h
+
+The double-linked list header file is provided under the terms
+of the Apache License 2.0:
+
+	SPDX-License-Identifier: Apache-2.0
+
+According with:
+
+	LICENSES/APACHE-2.0
+
+This applies to:
+
+	src/common/zephyr/dlist.h
+	src/common/zephyr/util.h
 
 The library documentation is provided under the terms of the Creative Commons
 Attribution Share Alike 4.0 International:
