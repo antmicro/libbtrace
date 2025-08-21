@@ -88,18 +88,11 @@ This applies to:
 
 	src/bindings/python/bt2/bt2/local_typing.py
 
-The Normand Python module is provided under the terms of the
-MIT License:
 
-	SPDX-License-Identifier: MIT
 
-According with:
 
-	LICENSES/MIT
 
-This applies to:
 
-	tests/utils/python/normand.py
 
 
 In addition, other licenses may also apply, see SPDX-License-Identifier in
