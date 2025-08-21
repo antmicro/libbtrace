@@ -23,27 +23,9 @@ version_verbose = $(version_verbose_@AM_V@)
 version_verbose_ = $(version_verbose_@AM_DEFAULT_V@)
 version_verbose_0 = @echo "  GEN     " $@;
 
-common/version.i:
-	$(version_verbose)GREP=$(GREP) SED=$(SED) TOP_SRCDIR="$(top_srcdir)" $(SHELL) $(srcdir)/gen-version-i.sh
-
-dist_noinst_SCRIPTS = gen-version-i.sh
-
-# Ensure version.i is generated before any code is built.
-BUILT_SOURCES = common/version.i
-
-##
-## version.i is defined as a .PHONY target even if it's a real file,
-## we want the target to be re-run on every make.
-##
-.PHONY: common/version.i
-
-CLEANFILES = common/version.i.tmp
-
-##
-## Only clean "version.i" on dist-clean, we need to keep it on regular
-## clean when it's part of a dist tarball.
-##
-DISTCLEANFILES = common/version.i
+BUILT_SOURCES =
+CLEANFILES =
+DISTCLEANFILES =
 
 #
 # Convenience libraries
@@ -93,8 +75,7 @@ common_libcommon_la_SOURCES = \
 	common/safe.h \
 	common/uuid.c \
 	common/uuid.h \
-	common/version.h \
-	common/version.i
+	common/version.h
 
 common_libcommon_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

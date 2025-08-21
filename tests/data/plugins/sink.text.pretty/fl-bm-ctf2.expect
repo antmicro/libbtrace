@@ -1,5 +1,0 @@
-coucou: { lol = 0x0 }
-coucou: { lol = 0x2 { "SALUT" } }
-coucou: { lol = 0x12 { "MEOW", "SALUT" } }
-coucou: { lol = 0xFF { "MEOW", "MIX", "SALUT" } }
-coucou: { lol = 0x10 { "MEOW" } }

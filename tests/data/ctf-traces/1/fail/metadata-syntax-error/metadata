@@ -1,3 +1,0 @@
-/* CTF 1.8 */
-
-typealias integer { size = 8; align = 8; signed = false; ] := uint8_t;

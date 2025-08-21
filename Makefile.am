@@ -7,8 +7,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = \
 	include \
 	src \
-	doc \
-	tests
+	doc
 
 dist_doc_DATA = \
 	ChangeLog \
@@ -27,8 +26,6 @@ EXTRA_DIST = \
 	LICENSES/CC-BY-SA-4.0.txt \
 	LICENSES/FSFAP.txt \
 	LICENSES/FSFULLR.txt \
-	LICENSES/GPL-2.0-only.txt \
-	LICENSES/GPL-2.0-or-later.txt \
 	LICENSES/LGPL-2.1-only.txt \
 	LICENSES/LicenseRef-Autoconf-exception-macro.txt \
 	LICENSES/MIT.txt \

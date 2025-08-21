@@ -12,16 +12,6 @@ Copyright: 2017 - present, Nir Friedman
 License: BSL-1.0
 
 Files:
-  tests/data/*
-Copyright: 2011-2025 EfficiOS Inc.
-License: CC0-1.0
-
-Files:
-  tests/utils/python/tap/*.py
-Copyright: 2019 - present, Matt Layman and contributors
-License: BSD-2-Clause
-
-Files:
   doc/api/libbabeltrace2/examples/*.c
 Copyright: 2019-2025 Philippe Proulx <pproulx@efficios.com>
 License: MIT
