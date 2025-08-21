@@ -48,20 +48,6 @@ According with:
 	LICENSES/GPL-2.0
 
 
-The BASH TAP library is provided under the terms of the GNU General Public
-License v3.0 or later:
-
-	SPDX-License-Identifier: GPL-3.0-or-later
-
-According with:
-
-	LICENSES/GPL-3.0
-
-It's only used when running the tests in the source tree. This applies to:
-
-	tests/utils/tap/tap.sh
-
-
 The library documentation is provided under the terms of the Creative Commons
 Attribution Share Alike 4.0 International:
 
