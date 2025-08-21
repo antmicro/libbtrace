@@ -22,20 +22,8 @@ This applies to:
 	src/plugins/lttng-utils/debug-info/crc32.h
 
 
-The list header file is provided under the terms of the GNU Lesser General
-Public License v2.1 only:
 
-	SPDX-License-Identifier: LGPL-2.1-only
 
-According with:
-
-	LICENSES/LGPL-2.1
-
-It only contains trivial static inline functions and macros, and, therefore,
-including it does not make babeltrace a derivative work on this header. This
-applies to:
-
-	src/common/list.h
 
 
 The test code is provided under the terms of the GNU General Public License
