@@ -74,12 +74,56 @@ This applies to:
 
 	src/bindings/python/bt2/bt2/local_typing.py
 
-
-
-
-
-
-
-
 In addition, other licenses may also apply, see SPDX-License-Identifier in
 individual files.
+
+
+The binary distribution of babeltrace2 bundles the following software:
+
+Name: GMP
+Files: bt2.libs/libgmp*.so.*
+License: LICENSES/LGPL-3.0-only.txt
+
+Name: nettle
+Files: bt2.libs/libhogweed*.so.*, bt2.libs/libnettle*.so.*
+License: LICENSES/LGPL-3.0-only.txt
+
+Name: libidn2
+Files: bt2.libs/libidn2*.so.*
+License: LICENSES/LGPL-3.0-only.txt
+
+Name: libintl
+Files: bt2/.dylibs/libintl*.dylib
+License: LICENSES/LGPL-3.0-only.txt
+
+Name: libgnutls
+Files: bt2.libs/libgnutls*.so.*
+License: LICENSES/LGPL-2.1-only.txt
+
+Name: libtasn1
+Files: bt2.libs/libtasn1*.so.*
+License: LICENSES/LGPL-2.1-only.txt
+
+Name: libunistring
+Files: bt2.libs/libunistring*.so.*
+License: LICENSES/LGPL-2.1-only.txt
+
+Name: libglib
+Files: bt2.libs/libglib*.so.*, bt2/.dylibs/libglib*.dylib
+License: LICENSES/LGPL-2.1-only.txt
+
+Name: libgmodule
+Files: bt2.libs/libgmodule*.so.*, bt2/.dylibs/libgmodule*.dylib
+License: LICENSES/LGPL-2.1-only.txt
+
+Name: libpcre2
+Files: bt2.libs/libpcre2*.so.*, bt2/.dylibs/libpcre2*.dylib
+License: LICENSES/pcre2.txt
+
+Name: p11-kit
+Files: bt2.libs/libp11-kit*.so.*
+License: LICENSES/p11-kit.txt
+
+Name: libffi
+Files: bt2.libs/libffi*.so.*
+License: LICENSES/libffi.txt
