@@ -1,0 +1,51 @@
+name: libbtrace
+run-name: libbtrace
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  cibuildwheel:
+    runs-on: ${{ matrix.os }}
+    name: Build wheels (${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install swig libtool bison automake autoconf flex glib pkgconf
+          export PATH="$(brew --prefix bison)/bin:$PATH"
+          export MACOSX_DEPLOYMENT_TARGET=15.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pipx
+        run: python3 -m pip install pipx
+      - name: Build wheels
+        run: python3 -m pipx run cibuildwheel
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  publish-python-packages:
+    if: github.event_name == 'push' && github.repository == 'antmicro/libbtrace'
+    runs-on: ubuntu-latest
+    name: Publish Python packages
+    needs: [cibuildwheel]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+      - uses: pyTooling/Actions/releaser@r0
+        with:
+          token: ${{ github.token }}
+          files: wheelhouse/*.whl
