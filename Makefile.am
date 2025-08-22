@@ -10,12 +10,8 @@ SUBDIRS = \
 	doc
 
 dist_doc_DATA = \
-	ChangeLog \
-	CONTRIBUTING.adoc \
 	LICENSE \
 	README.adoc
-
-dist_noinst_DATA = CodingStyle.md
 
 EXTRA_DIST = \
 	.reuse/dep5 \
@@ -29,6 +25,4 @@ EXTRA_DIST = \
 	LICENSES/LGPL-2.1-only.txt \
 	LICENSES/LicenseRef-Autoconf-exception-macro.txt \
 	LICENSES/MIT.txt \
-	LICENSES/PSF-2.0.txt \
-	std-ext-lib.md \
-	version
+	LICENSES/PSF-2.0.txt

@@ -1,7 +1,0 @@
-// SPDX-FileCopyrightText: 2020 EfficiOS Inc.
-//
-// SPDX-License-Identifier: CC-BY-SA-4.0
-
-= Babeltrace's version extra information patches
-
-NOTE: See the parent directory's `README.adoc` file.

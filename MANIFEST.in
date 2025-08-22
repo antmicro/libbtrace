@@ -1,10 +1,9 @@
 recursive-include src *.*
 recursive-include m4 *.*
-recursive-include version *.*
 recursive-include doc *.*
 recursive-include include *.*
 recursive-include LICENSES *.*
 include bootstrap configure.ac Makefile.am
-include LICENSE ChangeLog *.adoc *.md
+include LICENSE *.adoc *.md
 include init.py.patch
 include custom_build.py
