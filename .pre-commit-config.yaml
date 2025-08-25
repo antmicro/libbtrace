@@ -4,27 +4,15 @@
 #
 
 repos:
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.12.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.10
     hooks:
-      - id: black
-        types: [file]
-        files: \.(py|py.in)$
-        exclude: '(src/bindings/python/bt2/bt2/local_typing.py|tests/utils/python/normand.py|tests/utils/python/tap/.*|tests/utils/python/typing/.*)'
-  - repo:  https://github.com/pycqa/flake8
-    rev: 7.2.0
-    hooks:
-      - id: flake8
-        types: [file]
-        files: \.(py|py.in)$
-        exclude: '(src/bindings/python/bt2/bt2/local_typing.py|tests/utils/python/normand.py|tests/utils/python/tap/.*|tests/utils/python/typing/.*)'
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        types: [file]
-        files: \.(py|py.in)$
-        exclude: '(src/bindings/python/bt2/bt2/local_typing.py|tests/utils/python/normand.py|tests/utils/python/tap/.*|tests/utils/python/typing/.*)'
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
+      types_or: [python, pyi]
+    - id: ruff-format
+      types_or: [python, pyi]
+
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:

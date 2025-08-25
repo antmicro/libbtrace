@@ -26,8 +26,7 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = [
-  "black~=23.12.1",
-  "flake8>=7.1.1",
+  "ruff~=0.12.10",
   "isort~=5.13",
 ]
 
@@ -64,3 +63,34 @@ select = "*-musllinux*"
 before-all = [
   "apk add elfutils libdw patchelf patch swig flex bison",
 ]
+
+[tool.ruff]
+preview = true
+line-length = 100
+select = [
+  "I",      # enable isort
+  "E",      # PEP8 errors
+  "E261",   # At least two spaces before inline comment
+  "E225",   # Missing whitespace around operator
+  "F",      # PEP8 warnings
+  "RUF100", # disallowed unnecessary noqa
+]
+
+ignore = [
+  "E203",  # Whitespace before ':'
+  "D105",  # Missing docstring in magic method
+  "D204",  # 1 blank line required after class docstring
+  "D205",  # 1 blank line required between summary line and description
+  "D200",  # One-line docstring should fit on one line
+  "D102",  # Missing docstring in public method
+  "D401",  # First line of docstring should be in imperative mood
+  "D407",  # Missing argument description in the docstring (handled by pydoclint)
+]
+
+extend-exclude = ["src/bindings/python/bt2/bt2/local_typing.py"]
+
+[tool.ruff.isort]
+extra-standard-library = ["pathlib"]
+
+[tool.ruff.extend-per-file-ignores]
+"src/bindings/python/bt2/bt2/__init__.py" = ["E402"]  # Module level import not at top of file
