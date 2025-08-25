@@ -2,18 +2,18 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-import uuid as uuidp
-import functools
 import collections.abc
+import functools
+import uuid as uuidp
 
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
-from bt2 import value as bt2_value
+from bt2 import native_bt, typing_mod
 from bt2 import object as bt2_object
 from bt2 import stream as bt2_stream
-from bt2 import native_bt, typing_mod
 from bt2 import stream_class as bt2_stream_class
 from bt2 import user_attributes as bt2_user_attrs
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
 
 typing = typing_mod._typing_mod
 
@@ -28,9 +28,7 @@ def _bt2_trace_class():
 
 
 class _TraceEnvironmentConst(collections.abc.Mapping):
-    _create_value_from_ptr_and_get_ref = staticmethod(
-        bt2_value._create_from_const_ptr_and_get_ref
-    )
+    _create_value_from_ptr_and_get_ref = staticmethod(bt2_value._create_from_const_ptr_and_get_ref)
 
     def __init__(self, trace):
         self._trace = trace
@@ -54,15 +52,11 @@ class _TraceEnvironmentConst(collections.abc.Mapping):
 
     def __iter__(self) -> typing.Iterator[str]:
         for idx in range(len(self)):
-            yield native_bt.trace_borrow_environment_entry_by_index_const(
-                self._trace._ptr, idx
-            )[0]
+            yield native_bt.trace_borrow_environment_entry_by_index_const(self._trace._ptr, idx)[0]
 
 
 class _TraceEnvironment(_TraceEnvironmentConst, collections.abc.MutableMapping):
-    _create_value_from_ptr_and_get_ref = staticmethod(
-        bt2_value._create_from_ptr_and_get_ref
-    )
+    _create_value_from_ptr_and_get_ref = staticmethod(bt2_value._create_from_ptr_and_get_ref)
 
     def __setitem__(self, key: str, value: typing.Union[str, int]):
         if isinstance(value, str):
@@ -95,9 +89,7 @@ class _TraceConst(
         native_bt.trace_put_ref(ptr)
 
     _borrow_stream_ptr_by_id = staticmethod(native_bt.trace_borrow_stream_by_id_const)
-    _borrow_stream_ptr_by_index = staticmethod(
-        native_bt.trace_borrow_stream_by_index_const
-    )
+    _borrow_stream_ptr_by_index = staticmethod(native_bt.trace_borrow_stream_by_index_const)
     _borrow_class_ptr = staticmethod(native_bt.trace_borrow_class_const)
 
     @staticmethod
@@ -122,9 +114,7 @@ class _TraceConst(
 
     def __iter__(self) -> typing.Iterator[bt2_stream._StreamConst]:
         for idx in range(len(self)):
-            yield native_bt.stream_get_id(
-                self._borrow_stream_ptr_by_index(self._ptr, idx)
-            )
+            yield native_bt.stream_get_id(self._borrow_stream_ptr_by_index(self._ptr, idx))
 
     @property
     def graph_mip_version(self) -> int:
@@ -173,13 +163,9 @@ class _TraceConst(
         handle = bt2_utils._ListenerHandle(self.addr)
         status, listener_id = native_bt.bt2_trace_add_destruction_listener(
             self._ptr,
-            functools.partial(
-                _trace_destruction_listener_from_native, listener, handle
-            ),
+            functools.partial(_trace_destruction_listener_from_native, listener, handle),
         )
-        bt2_utils._handle_func_status(
-            status, "cannot add destruction listener to trace object"
-        )
+        bt2_utils._handle_func_status(status, "cannot add destruction listener to trace object")
 
         handle._set_listener_id(listener_id)
 
@@ -189,17 +175,13 @@ class _TraceConst(
         bt2_utils._check_type(listener_handle, bt2_utils._ListenerHandle)
 
         if listener_handle._addr != self.addr:
-            raise ValueError(
-                "This trace destruction listener does not match the trace object."
-            )
+            raise ValueError("This trace destruction listener does not match the trace object.")
 
         if listener_handle._listener_id is None:
             raise ValueError("This trace destruction listener was already removed.")
 
         bt2_utils._handle_func_status(
-            native_bt.trace_remove_destruction_listener(
-                self._ptr, listener_handle._listener_id
-            )
+            native_bt.trace_remove_destruction_listener(self._ptr, listener_handle._listener_id)
         )
         listener_handle._invalidate()
 
@@ -261,9 +243,7 @@ class _Trace(bt2_user_attrs._WithUserAttrs, _TraceConst):
 
         if stream_class.assigns_automatic_stream_id:
             if id is not None:
-                raise ValueError(
-                    "id provided, but stream class assigns automatic stream ids"
-                )
+                raise ValueError("id provided, but stream class assigns automatic stream ids")
 
             stream_ptr = native_bt.stream_create(stream_class._ptr, self._ptr)
         else:
@@ -273,9 +253,7 @@ class _Trace(bt2_user_attrs._WithUserAttrs, _TraceConst):
                 )
 
             bt2_utils._check_uint64(id)
-            stream_ptr = native_bt.stream_create_with_id(
-                stream_class._ptr, self._ptr, id
-            )
+            stream_ptr = native_bt.stream_create_with_id(stream_class._ptr, self._ptr, id)
 
         if stream_ptr is None:
             raise bt2_error._MemoryError("cannot create stream object")

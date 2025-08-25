@@ -245,8 +245,8 @@ public:
     explicit DependentFcSavedKeyValIndexSetter(TraceCls& traceCls,
                                                DataStreamCls * const curDataStreamCls,
                                                EventRecordCls * const curEventRecordCls) :
-        _mTraceCls {&traceCls},
-        _mCurDataStreamCls {curDataStreamCls}, _mCurEventRecordCls {curEventRecordCls}
+        _mTraceCls {&traceCls}, _mCurDataStreamCls {curDataStreamCls},
+        _mCurEventRecordCls {curEventRecordCls}
     {
     }
 
@@ -1612,8 +1612,7 @@ class LibTraceClsFromTraceClsTranslator final
 public:
     explicit LibTraceClsFromTraceClsTranslator(TraceCls& traceCls,
                                                const bt2::SelfComponent selfComp) :
-        _mTraceCls {&traceCls},
-        _mSelfComp {selfComp}, _mMipVersion {selfComp.graphMipVersion()}
+        _mTraceCls {&traceCls}, _mSelfComp {selfComp}, _mMipVersion {selfComp.graphMipVersion()}
     {
         /* Translate whole trace class */
         this->_translate();
@@ -1998,9 +1997,7 @@ void normalizeClkClsOffsetFromOrigin(ClkCls& clkCls) noexcept
 
 MetadataStreamParser::MetadataStreamParser(
     const bt2::OptionalBorrowedObject<bt2::SelfComponent> selfComp,
-    const ClkClsCfg& clkClsCfg) noexcept :
-    _mClkClsCfg(clkClsCfg),
-    _mSelfComp {selfComp}
+    const ClkClsCfg& clkClsCfg) noexcept : _mClkClsCfg(clkClsCfg), _mSelfComp {selfComp}
 {
 }
 

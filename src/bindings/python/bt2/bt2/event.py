@@ -4,13 +4,13 @@
 
 import collections.abc
 
+from bt2 import event_class as bt2_event_class
 from bt2 import field as bt2_field
-from bt2 import utils as bt2_utils
+from bt2 import native_bt, typing_mod
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
-from bt2 import native_bt, typing_mod
-from bt2 import event_class as bt2_event_class
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -61,9 +61,7 @@ class _EventConst(bt2_object._UniqueObject, collections.abc.Mapping):
 
     @property
     def stream(self) -> typing.Optional[bt2_stream._StreamConst]:
-        return self._stream_pycls._create_from_ptr_and_get_ref(
-            self._borrow_stream_ptr(self._ptr)
-        )
+        return self._stream_pycls._create_from_ptr_and_get_ref(self._borrow_stream_ptr(self._ptr))
 
     @property
     def common_context_field(self) -> typing.Optional[bt2_field._StructureFieldConst]:
@@ -165,12 +163,8 @@ class _Event(_EventConst):
     _borrow_class_ptr = staticmethod(native_bt.event_borrow_class)
     _borrow_packet_ptr = staticmethod(native_bt.event_borrow_packet)
     _borrow_stream_ptr = staticmethod(native_bt.event_borrow_stream)
-    _borrow_common_context_field_ptr = staticmethod(
-        native_bt.event_borrow_common_context_field
-    )
-    _borrow_specific_context_field_ptr = staticmethod(
-        native_bt.event_borrow_specific_context_field
-    )
+    _borrow_common_context_field_ptr = staticmethod(native_bt.event_borrow_common_context_field)
+    _borrow_specific_context_field_ptr = staticmethod(native_bt.event_borrow_specific_context_field)
     _borrow_payload_field_ptr = staticmethod(native_bt.event_borrow_payload_field)
     _create_field_from_ptr = staticmethod(bt2_field._create_field_from_ptr)
 

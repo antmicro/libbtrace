@@ -18,8 +18,7 @@ using namespace bt2c::literals::datalen;
 
 ItemSeqIter::ItemSeqIter(std::unique_ptr<Medium> medium, const TraceCls& traceCls,
                          const bt2c::Logger& parentLogger) :
-    _mMedium {std::move(medium)},
-    _mTraceCls {&traceCls},
+    _mMedium {std::move(medium)}, _mTraceCls {&traceCls},
     _mTraceClsSavedKeyValCountUpdatedObservableToken(
         _mTraceCls->savedKeyValCountUpdatedObservable().attach(
             std::bind(&ItemSeqIter::_savedKeyValCountUpdated, this, std::placeholders::_1))),
@@ -42,9 +41,7 @@ ItemSeqIter::_StackFrame::_StackFrame(const _State restoringStateParam) noexcept
 }
 
 ItemSeqIter::_StackFrame::_StackFrame(const _State restoringStateParam, const Fc& fcParam) noexcept
-    :
-    restoringState {restoringStateParam},
-    fc {&fcParam}
+    : restoringState {restoringStateParam}, fc {&fcParam}
 {
 }
 

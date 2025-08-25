@@ -2,11 +2,11 @@
 #
 # Copyright (c) 2018 Francis Deslauriers <francis.deslauriers@efficios.com>
 
-import enum
 import collections
+import enum
 
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
 
 typing = typing_mod._typing_mod
 
@@ -62,9 +62,7 @@ class _FieldPathConst(bt2_object._SharedObject, collections.abc.Iterable):
             item_ptr = native_bt.field_path_borrow_item_by_index_const(self._ptr, idx)
             item_type = native_bt.field_path_item_get_type(item_ptr)
             if item_type == native_bt.FIELD_PATH_ITEM_TYPE_INDEX:
-                yield _IndexFieldPathItem(
-                    native_bt.field_path_item_index_get_index(item_ptr)
-                )
+                yield _IndexFieldPathItem(native_bt.field_path_item_index_get_index(item_ptr))
             elif item_type == native_bt.FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
                 yield _CurrentArrayElementFieldPathItem()
             elif item_type == native_bt.FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT:

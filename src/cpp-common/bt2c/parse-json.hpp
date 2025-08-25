@@ -166,8 +166,8 @@ private:
 template <typename ListenerT>
 JsonParser<ListenerT>::JsonParser(const bt2s::string_view str, ListenerT& listener,
                                   const std::size_t baseOffset, const Logger& parentLogger) :
-    _mLogger {parentLogger, "PARSE-JSON"},
-    _mSs {str, baseOffset, parentLogger}, _mListener {&listener}
+    _mLogger {parentLogger, "PARSE-JSON"}, _mSs {str, baseOffset, parentLogger},
+    _mListener {&listener}
 {
     this->_parse();
 }

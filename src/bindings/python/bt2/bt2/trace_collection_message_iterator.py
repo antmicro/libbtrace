@@ -2,25 +2,25 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-import numbers
 import datetime
 import itertools
+import numbers
 from collections import namedtuple
 
-from bt2 import mip as bt2_mip
-from bt2 import port as bt2_port
+from bt2 import component as bt2_component
+from bt2 import component_descriptor as bt2_component_descriptor
 from bt2 import error as bt2_error
 from bt2 import graph as bt2_graph
-from bt2 import utils as bt2_utils
-from bt2 import value as bt2_value
-from bt2 import plugin as bt2_plugin
 from bt2 import logging as bt2_logging
 from bt2 import message as bt2_message
-from bt2 import component as bt2_component
-from bt2 import native_bt, typing_mod
-from bt2 import query_executor as bt2_query_executor
 from bt2 import message_iterator as bt2_message_iterator
-from bt2 import component_descriptor as bt2_component_descriptor
+from bt2 import mip as bt2_mip
+from bt2 import native_bt, typing_mod
+from bt2 import plugin as bt2_plugin
+from bt2 import port as bt2_port
+from bt2 import query_executor as bt2_query_executor
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
 
 typing = typing_mod._typing_mod
 
@@ -31,9 +31,7 @@ _ComponentAndSpec = namedtuple("_ComponentAndSpec", ["comp", "spec"])
 class _BaseComponentSpec:
     # Base for any component spec that can be passed to
     # TraceCollectionMessageIterator.
-    def __init__(
-        self, params, obj, logging_level: typing.Optional[bt2_logging.LoggingLevel]
-    ):
+    def __init__(self, params, obj, logging_level: typing.Optional[bt2_logging.LoggingLevel]):
         if logging_level is not None:
             bt2_utils._check_type(logging_level, bt2_logging.LoggingLevel)
 
@@ -164,9 +162,7 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
     else:
         bt2_utils._check_type(plugin_set, bt2_plugin._PluginSet)
 
-    res_ptr = native_bt.bt2_auto_discover_source_components(
-        inputs._ptr, plugin_set._ptr
-    )
+    res_ptr = native_bt.bt2_auto_discover_source_components(inputs._ptr, plugin_set._ptr)
 
     if res_ptr is None:
         raise bt2_error._MemoryError("cannot auto discover source components")
@@ -245,9 +241,8 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
         unused_input_indices = sorted(unused_input_indices)
         unused_inputs = [str(inputs[x]) for x in unused_input_indices]
 
-        msg = (
-            "Some auto source component specs did not produce any component: "
-            + ", ".join(unused_inputs)
+        msg = "Some auto source component specs did not produce any component: " + ", ".join(
+            unused_inputs
         )
         raise RuntimeError(msg)
 
@@ -266,9 +261,7 @@ def _get_ns(obj):
         # s -> ns
         s = obj.timestamp()
     else:
-        raise TypeError(
-            '"{}" is not an integral number or a datetime.datetime object'.format(obj)
-        )
+        raise TypeError('"{}" is not an integral number or a datetime.datetime object'.format(obj))
 
     return int(s * 1e9)
 
@@ -335,9 +328,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
 
         # Convert any `AutoSourceComponentSpec` in concrete `ComponentSpec` instances.
         auto_src_comp_specs = [
-            spec
-            for spec in source_component_specs
-            if type(spec) is AutoSourceComponentSpec
+            spec for spec in source_component_specs if type(spec) is AutoSourceComponentSpec
         ]
         self._src_comp_specs += _auto_discover_source_component_specs(
             auto_src_comp_specs, plugin_set
@@ -370,15 +361,8 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             trace_infos = query_exec.query()
 
             for trace_info in trace_infos:
-                begin = max(
-                    [
-                        stream["range-ns"]["begin"]
-                        for stream in trace_info["stream-infos"]
-                    ]
-                )
-                end = min(
-                    [stream["range-ns"]["end"] for stream in trace_info["stream-infos"]]
-                )
+                begin = max([stream["range-ns"]["begin"] for stream in trace_info["stream-infos"]])
+                end = min([stream["range-ns"]["end"] for stream in trace_info["stream-infos"]])
 
                 # Each port associated to this trace will have this computed
                 # range.
@@ -405,9 +389,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
     def _validate_filter_component_specs(self, comp_specs):
         for comp_spec in comp_specs:
             if type(comp_spec) is not ComponentSpec:
-                raise TypeError(
-                    '"{}" object is not a ComponentSpec'.format(type(comp_spec))
-                )
+                raise TypeError('"{}" object is not a ComponentSpec'.format(type(comp_spec)))
 
     def __next__(self) -> bt2_message._MessageConst:
         assert self._msg_list[0] is None
@@ -430,9 +412,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             raise RuntimeError('cannot find "utils" plugin (needed for the muxer)')
 
         if "muxer" not in plugin.filter_component_classes:
-            raise RuntimeError(
-                'cannot find "muxer" filter component class in "utils" plugin'
-            )
+            raise RuntimeError('cannot find "muxer" filter component class in "utils" plugin')
 
         comp_cls = plugin.filter_component_classes["muxer"]
         return self._graph.add_component(comp_cls, "muxer")
@@ -444,9 +424,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             raise RuntimeError('cannot find "utils" plugin (needed for the trimmer)')
 
         if "trimmer" not in plugin.filter_component_classes:
-            raise RuntimeError(
-                'cannot find "trimmer" filter component class in "utils" plugin'
-            )
+            raise RuntimeError('cannot find "trimmer" filter component class in "utils" plugin')
 
         params = {}
 
@@ -466,9 +444,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
 
     def _get_unique_comp_name(self, comp_cls):
         name = comp_cls.name
-        comps_and_specs = itertools.chain(
-            self._src_comps_and_specs, self._flt_comps_and_specs
-        )
+        comps_and_specs = itertools.chain(self._src_comps_and_specs, self._flt_comps_and_specs)
 
         if name in [comp_and_spec.comp.name for comp_and_spec in comps_and_specs]:
             name += "-{}".format(self._next_suffix)
@@ -535,16 +511,16 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
 
         if self._stream_intersection_mode:
             # we also need at least one `flt.utils.trimmer` component
-            comp_spec = ComponentSpec.from_named_plugin_and_component_class(
-                "utils", "trimmer"
-            )
+            comp_spec = ComponentSpec.from_named_plugin_and_component_class("utils", "trimmer")
             append_comp_specs_descriptors(descriptors, [comp_spec])
 
         mip_version = bt2_mip.get_greatest_operative_mip_version(descriptors)
 
         if mip_version is None:
-            msg = "failed to find an operative message interchange protocol version (components are not interoperable)"
-            raise RuntimeError(msg)
+            raise RuntimeError(
+                "failed to find an operative message interchange "
+                "protocol version (components are not interoperable)"
+            )
 
         return mip_version
 

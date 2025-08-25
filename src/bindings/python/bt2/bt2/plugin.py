@@ -2,13 +2,13 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-import os.path
 import collections.abc
+import os.path
 
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
 from bt2 import component as bt2_component
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -56,9 +56,7 @@ class _PluginComponentClassesIterator(collections.abc.Iterator):
         if self._at == self._plugin_comp_cls._component_class_count(plugin_ptr):
             raise StopIteration
 
-        comp_cls_ptr = self._plugin_comp_cls._borrow_component_class_by_index(
-            plugin_ptr, self._at
-        )
+        comp_cls_ptr = self._plugin_comp_cls._borrow_component_class_by_index(plugin_ptr, self._at)
         self._at += 1
 
         return native_bt.component_class_get_name(
@@ -68,9 +66,7 @@ class _PluginComponentClassesIterator(collections.abc.Iterator):
         )
 
 
-_ComponentClassT = typing.TypeVar(
-    "_ComponentClassT", bound=bt2_component._ComponentClassConst
-)
+_ComponentClassT = typing.TypeVar("_ComponentClassT", bound=bt2_component._ComponentClassConst)
 
 
 class _PluginComponentClasses(typing.Mapping[str, _ComponentClassT]):
@@ -114,9 +110,7 @@ class _PluginComponentClasses(typing.Mapping[str, _ComponentClassT]):
 class _PluginSourceComponentClasses(
     _PluginComponentClasses[bt2_component._SourceComponentClassConst]
 ):
-    _component_class_count = staticmethod(
-        native_bt.plugin_get_source_component_class_count
-    )
+    _component_class_count = staticmethod(native_bt.plugin_get_source_component_class_count)
     _borrow_component_class_by_name = staticmethod(
         native_bt.plugin_borrow_source_component_class_by_name_const
     )
@@ -129,9 +123,7 @@ class _PluginSourceComponentClasses(
 class _PluginFilterComponentClasses(
     _PluginComponentClasses[bt2_component._FilterComponentClassConst]
 ):
-    _component_class_count = staticmethod(
-        native_bt.plugin_get_filter_component_class_count
-    )
+    _component_class_count = staticmethod(native_bt.plugin_get_filter_component_class_count)
     _borrow_component_class_by_name = staticmethod(
         native_bt.plugin_borrow_filter_component_class_by_name_const
     )
@@ -141,12 +133,8 @@ class _PluginFilterComponentClasses(
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
 
 
-class _PluginSinkComponentClasses(
-    _PluginComponentClasses[bt2_component._SinkComponentClassConst]
-):
-    _component_class_count = staticmethod(
-        native_bt.plugin_get_sink_component_class_count
-    )
+class _PluginSinkComponentClasses(_PluginComponentClasses[bt2_component._SinkComponentClassConst]):
+    _component_class_count = staticmethod(native_bt.plugin_get_sink_component_class_count)
     _borrow_component_class_by_name = staticmethod(
         native_bt.plugin_borrow_sink_component_class_by_name_const
     )
@@ -245,9 +233,7 @@ def find_plugins_in_path(
     plugin_set_ptr = None
 
     if os.path.isfile(path):
-        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(
-            path, fail_on_load_error
-        )
+        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(path, fail_on_load_error)
     elif os.path.isdir(path):
         status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_dir(
             path, int(recurse), int(fail_on_load_error)

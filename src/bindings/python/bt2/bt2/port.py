@@ -2,8 +2,8 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
 
 typing = typing_mod._typing_mod
 
@@ -90,15 +90,11 @@ class _UserComponentPort(_PortConst):
 
 
 class _UserComponentInputPort(_UserComponentPort, _InputPortConst):
-    _as_self_port_ptr = staticmethod(
-        native_bt.self_component_port_input_as_self_component_port
-    )
+    _as_self_port_ptr = staticmethod(native_bt.self_component_port_input_as_self_component_port)
 
 
 class _UserComponentOutputPort(_UserComponentPort, _OutputPortConst):
-    _as_self_port_ptr = staticmethod(
-        native_bt.self_component_port_output_as_self_component_port
-    )
+    _as_self_port_ptr = staticmethod(native_bt.self_component_port_output_as_self_component_port)
 
 
 _PORT_TYPE_TO_PYCLS = {

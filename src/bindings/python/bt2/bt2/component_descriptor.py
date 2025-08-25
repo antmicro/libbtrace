@@ -2,9 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import value as bt2_value
 from bt2 import component as bt2_component
 from bt2 import native_bt, typing_mod
+from bt2 import value as bt2_value
 
 typing = typing_mod._typing_mod
 
@@ -40,18 +40,14 @@ def _is_sink_comp_cls(comp_cls):
 
 
 class ComponentDescriptor:
-    def __init__(
-        self, component_class, params: bt2_component._ComponentParams = None, obj=None
-    ):
+    def __init__(self, component_class, params: bt2_component._ComponentParams = None, obj=None):
         if (
             not _is_source_comp_cls(component_class)
             and not _is_filter_comp_cls(component_class)
             and not _is_sink_comp_cls(component_class)
         ):
             raise TypeError(
-                "'{}' is not a component class".format(
-                    component_class.__class__.__name__
-                )
+                "'{}' is not a component class".format(component_class.__class__.__name__)
             )
 
         base_cc_ptr = component_class._bt_component_class_ptr()

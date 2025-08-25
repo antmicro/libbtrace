@@ -1350,8 +1350,7 @@ class AnyFcValReqWrapper final : public bt2c::JsonValReq
 public:
     explicit AnyFcValReqWrapper(const AnyFullBlownFcValReq& anyFcValReq,
                                 const bt2c::Logger& parentLogger) :
-        bt2c::JsonValReq {parentLogger},
-        _mAnyFullBlownFcValReq {&anyFcValReq}
+        bt2c::JsonValReq {parentLogger}, _mAnyFullBlownFcValReq {&anyFcValReq}
     {
     }
 

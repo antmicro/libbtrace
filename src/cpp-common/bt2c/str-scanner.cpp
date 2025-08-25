@@ -28,8 +28,7 @@ const bt2c::Regex StrScanner::_realRegex {
 
 StrScanner::StrScanner(const bt2s::string_view str, const std::size_t baseOffset,
                        const Logger& logger) :
-    _mStr {str},
-    _mAt {str.begin()}, _mLineBegin {str.begin()}, _mBaseOffset {baseOffset},
+    _mStr {str}, _mAt {str.begin()}, _mLineBegin {str.begin()}, _mBaseOffset {baseOffset},
     _mLogger {logger, "STR-SCANNER"}
 {
 }

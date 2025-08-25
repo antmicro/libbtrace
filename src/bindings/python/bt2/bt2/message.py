@@ -2,13 +2,13 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
+from bt2 import clock_snapshot as bt2_clock_snapshot
 from bt2 import event as bt2_event
-from bt2 import utils as bt2_utils
+from bt2 import native_bt, typing_mod
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
-from bt2 import native_bt, typing_mod
-from bt2 import clock_snapshot as bt2_clock_snapshot
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -92,9 +92,7 @@ class _PacketMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
 
     @property
     def packet(self) -> bt2_packet._PacketConst:
-        return self._packet_pycls._create_from_ptr_and_get_ref(
-            self._borrow_packet(self._ptr)
-        )
+        return self._packet_pycls._create_from_ptr_and_get_ref(self._borrow_packet(self._ptr))
 
 
 class _PacketMessage(_PacketMessageConst, _Message):
@@ -102,9 +100,7 @@ class _PacketMessage(_PacketMessageConst, _Message):
 
 
 class _PacketBeginningMessageConst(_PacketMessageConst):
-    _borrow_packet = staticmethod(
-        native_bt.message_packet_beginning_borrow_packet_const
-    )
+    _borrow_packet = staticmethod(native_bt.message_packet_beginning_borrow_packet_const)
     _borrow_default_clock_snapshot_ptr = staticmethod(
         native_bt.message_packet_beginning_borrow_default_clock_snapshot_const
     )
@@ -130,9 +126,7 @@ class _StreamMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
 
     @property
     def stream(self) -> bt2_stream._StreamConst:
-        return self._stream_pycls._create_from_ptr_and_get_ref(
-            self._borrow_stream_ptr(self._ptr)
-        )
+        return self._stream_pycls._create_from_ptr_and_get_ref(self._borrow_stream_ptr(self._ptr))
 
     @property
     def default_clock_snapshot(self) -> bt2_clock_snapshot._ClockSnapshotConst:
@@ -157,9 +151,7 @@ class _StreamMessage(_StreamMessageConst, _Message):
 
 
 class _StreamBeginningMessageConst(_StreamMessageConst):
-    _borrow_stream_ptr = staticmethod(
-        native_bt.message_stream_beginning_borrow_stream_const
-    )
+    _borrow_stream_ptr = staticmethod(native_bt.message_stream_beginning_borrow_stream_const)
     _borrow_default_clock_snapshot_ptr = staticmethod(
         native_bt.message_stream_beginning_borrow_default_clock_snapshot_const
     )
@@ -186,9 +178,7 @@ class _StreamEndMessage(_StreamMessage):
     )
 
 
-class _MessageIteratorInactivityMessageConst(
-    _MessageConst, _MessageWithDefaultClockSnapshot
-):
+class _MessageIteratorInactivityMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
     _borrow_clock_snapshot_ptr = staticmethod(
         native_bt.message_message_iterator_inactivity_borrow_clock_snapshot_const
     )
@@ -200,9 +190,7 @@ class _MessageIteratorInactivityMessageConst(
         return self._get_default_clock_snapshot(self._borrow_clock_snapshot_ptr)
 
 
-class _MessageIteratorInactivityMessage(
-    _MessageIteratorInactivityMessageConst, _Message
-):
+class _MessageIteratorInactivityMessage(_MessageIteratorInactivityMessageConst, _Message):
     pass
 
 
@@ -211,9 +199,7 @@ class _DiscardedMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
 
     @property
     def stream(self) -> bt2_stream._StreamConst:
-        return self._stream_pycls._create_from_ptr_and_get_ref(
-            self._borrow_stream_ptr(self._ptr)
-        )
+        return self._stream_pycls._create_from_ptr_and_get_ref(self._borrow_stream_ptr(self._ptr))
 
     @property
     def count(self) -> typing.Optional[int]:
@@ -224,7 +210,8 @@ class _DiscardedMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
     def _check_has_default_clock_snapshots(self):
         if not self._has_default_clock_snapshots:
             raise ValueError(
-                "cannot get default clock snapshot: such a message has no clock snapshots for this stream class"
+                "cannot get default clock snapshot: "
+                "such a message has no clock snapshots for this stream class"
             )
 
     @property
@@ -232,9 +219,7 @@ class _DiscardedMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
         self,
     ) -> bt2_clock_snapshot._ClockSnapshotConst:
         self._check_has_default_clock_snapshots()
-        return self._get_default_clock_snapshot(
-            self._borrow_beginning_clock_snapshot_ptr
-        )
+        return self._get_default_clock_snapshot(self._borrow_beginning_clock_snapshot_ptr)
 
     @property
     def end_default_clock_snapshot(self) -> bt2_clock_snapshot._ClockSnapshotConst:
@@ -255,9 +240,7 @@ class _DiscardedMessage(_DiscardedMessageConst, _Message):
 
 
 class _DiscardedEventsMessageConst(_DiscardedMessageConst):
-    _borrow_stream_ptr = staticmethod(
-        native_bt.message_discarded_events_borrow_stream_const
-    )
+    _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream_const)
     _get_count = staticmethod(native_bt.message_discarded_events_get_count)
     _borrow_beginning_clock_snapshot_ptr = staticmethod(
         native_bt.message_discarded_events_borrow_beginning_default_clock_snapshot_const
@@ -278,9 +261,7 @@ class _DiscardedEventsMessage(_DiscardedEventsMessageConst, _DiscardedMessage):
 
 
 class _DiscardedPacketsMessageConst(_DiscardedMessageConst):
-    _borrow_stream_ptr = staticmethod(
-        native_bt.message_discarded_packets_borrow_stream_const
-    )
+    _borrow_stream_ptr = staticmethod(native_bt.message_discarded_packets_borrow_stream_const)
     _get_count = staticmethod(native_bt.message_discarded_packets_get_count)
     _borrow_beginning_clock_snapshot_ptr = staticmethod(
         native_bt.message_discarded_packets_borrow_beginning_default_clock_snapshot_const

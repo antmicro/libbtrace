@@ -2,22 +2,20 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
+import collections.abc
+import functools
 import math
 import numbers
-import functools
-import collections.abc
 
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
-from bt2 import native_bt, typing_mod
 from bt2 import field_class as bt2_field_class
+from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
 
-def _create_field_from_ptr_template(
-    object_map, ptr, owner_ptr, owner_get_ref, owner_put_ref
-):
+def _create_field_from_ptr_template(object_map, ptr, owner_ptr, owner_get_ref, owner_put_ref):
     return object_map[
         native_bt.field_class_get_type(native_bt.field_borrow_class_const(ptr))
     ]._create_from_ptr_and_get_ref(ptr, owner_ptr, owner_get_ref, owner_put_ref)
@@ -67,9 +65,7 @@ class _FieldConst(bt2_object._UniqueObject):
 
     @property
     def _cls(self):
-        return self._create_field_class_from_ptr_and_get_ref(
-            self._borrow_class_ptr(self._ptr)
-        )
+        return self._create_field_class_from_ptr_and_get_ref(self._borrow_class_ptr(self._ptr))
 
     @property
     def cls(self) -> bt2_field_class._FieldClassConst:
@@ -157,9 +153,7 @@ class _NumericFieldConst(_FieldConst):
         if isinstance(other, numbers.Complex):
             return complex(other)
 
-        raise TypeError(
-            "'{}' object is not a number object".format(other.__class__.__name__)
-        )
+        raise TypeError("'{}' object is not a number object".format(other.__class__.__name__))
 
     def __int__(self) -> int:
         return int(self._value)
@@ -497,9 +491,7 @@ class _SinglePrecisionRealField(_SinglePrecisionRealFieldConst, _RealField):
         return self._cls
 
     def _set_value(self, value):
-        native_bt.field_real_single_precision_set_value(
-            self._ptr, self._value_to_float(value)
-        )
+        native_bt.field_real_single_precision_set_value(self._ptr, self._value_to_float(value))
 
     value = property(fset=_set_value)
 
@@ -512,9 +504,7 @@ class _DoublePrecisionRealField(_DoublePrecisionRealFieldConst, _RealField):
         return self._cls
 
     def _set_value(self, value):
-        native_bt.field_real_double_precision_set_value(
-            self._ptr, self._value_to_float(value)
-        )
+        native_bt.field_real_double_precision_set_value(self._ptr, self._value_to_float(value))
 
     value = property(fset=_set_value)
 
@@ -540,13 +530,9 @@ class _EnumerationField(_EnumerationFieldConst, _IntegerField):
         return self._cls
 
 
-class _UnsignedEnumerationFieldConst(
-    _EnumerationFieldConst, _UnsignedIntegerFieldConst
-):
+class _UnsignedEnumerationFieldConst(_EnumerationFieldConst, _UnsignedIntegerFieldConst):
     _NAME = "Const unsigned Enumeration"
-    _get_mapping_labels = staticmethod(
-        native_bt.field_enumeration_unsigned_get_mapping_labels
-    )
+    _get_mapping_labels = staticmethod(native_bt.field_enumeration_unsigned_get_mapping_labels)
 
     @property
     def cls(self) -> bt2_field_class._UnsignedEnumerationFieldClassConst:
@@ -565,18 +551,14 @@ class _UnsignedEnumerationField(
 
 class _SignedEnumerationFieldConst(_EnumerationFieldConst, _SignedIntegerFieldConst):
     _NAME = "Const signed Enumeration"
-    _get_mapping_labels = staticmethod(
-        native_bt.field_enumeration_signed_get_mapping_labels
-    )
+    _get_mapping_labels = staticmethod(native_bt.field_enumeration_signed_get_mapping_labels)
 
     @property
     def cls(self) -> bt2_field_class._SignedEnumerationFieldClassConst:
         return self._cls
 
 
-class _SignedEnumerationField(
-    _SignedEnumerationFieldConst, _EnumerationField, _SignedIntegerField
-):
+class _SignedEnumerationField(_SignedEnumerationFieldConst, _EnumerationField, _SignedIntegerField):
     _NAME = "Signed enumeration"
 
     @property
@@ -673,9 +655,7 @@ class _ContainerFieldConst(_FieldConst):
         raise NotImplementedError
 
     def __setitem__(self, index, value):
-        raise TypeError(
-            "'{}' object does not support item assignment".format(self.__class__)
-        )
+        raise TypeError("'{}' object does not support item assignment".format(self.__class__))
 
 
 class _ContainerField(_ContainerFieldConst, _Field):
@@ -752,9 +732,7 @@ class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
         )
 
 
-class _StructureField(
-    _StructureFieldConst, _ContainerField, collections.abc.MutableMapping
-):
+class _StructureField(_StructureFieldConst, _ContainerField, collections.abc.MutableMapping):
     _NAME = "Structure"
     _borrow_member_field_ptr_by_index = staticmethod(
         native_bt.field_structure_borrow_member_field_by_index
@@ -850,9 +828,7 @@ class _OptionFieldWithBoolSelectorFieldConst(_OptionFieldConst):
         return self._cls
 
 
-class _OptionFieldWithBoolSelectorField(
-    _OptionFieldWithBoolSelectorFieldConst, _OptionField
-):
+class _OptionFieldWithBoolSelectorField(_OptionFieldWithBoolSelectorFieldConst, _OptionField):
     @property
     def cls(self) -> bt2_field_class._OptionFieldClassWithBoolSelectorField:
         return self._cls
@@ -1041,9 +1017,7 @@ class _ArrayFieldConst(_ContainerFieldConst, _FieldConst, collections.abc.Sequen
         return "[{}]".format(", ".join([repr(v) for v in self]))
 
 
-class _ArrayField(
-    _ArrayFieldConst, _ContainerField, _Field, collections.abc.MutableSequence
-):
+class _ArrayField(_ArrayFieldConst, _ContainerField, _Field, collections.abc.MutableSequence):
     _borrow_element_field_ptr_by_index = staticmethod(
         native_bt.field_array_borrow_element_field_by_index
     )
@@ -1140,9 +1114,7 @@ class _DynamicArrayFieldWithLengthFieldConst(_DynamicArrayFieldConst):
         return self._cls
 
 
-class _DynamicArrayFieldWithLengthField(
-    _DynamicArrayFieldWithLengthFieldConst, _DynamicArrayField
-):
+class _DynamicArrayFieldWithLengthField(_DynamicArrayFieldWithLengthFieldConst, _DynamicArrayField):
     @property
     def cls(self) -> bt2_field_class._DynamicArrayFieldClassWithLengthField:
         return self._cls
@@ -1218,9 +1190,7 @@ class _DynamicBlobFieldWithLengthFieldConst(_DynamicBlobFieldConst):
         return self._cls
 
 
-class _DynamicBlobFieldWithLengthField(
-    _DynamicBlobFieldWithLengthFieldConst, _DynamicBlobField
-):
+class _DynamicBlobFieldWithLengthField(_DynamicBlobFieldWithLengthFieldConst, _DynamicBlobField):
     @property
     def cls(self) -> bt2_field_class._DynamicBlobFieldClassWithLengthField:
         return self._cls
@@ -1239,17 +1209,17 @@ _TYPE_ID_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldConst,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldConst,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD: _DynamicArrayFieldConst,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldWithLengthFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldWithLengthFieldConst,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD: _OptionFieldConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldWithBoolSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithUnsignedIntegerSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithSignedIntegerSelectorFieldConst,
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldWithBoolSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithUnsignedIntegerSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithSignedIntegerSelectorFieldConst,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD: _VariantFieldConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithUnsignedIntegerSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithSignedIntegerSelectorFieldConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithUnsignedIntegerSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithSignedIntegerSelectorFieldConst,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_STATIC_BLOB: _StaticBlobFieldConst,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD: _DynamicBlobFieldConst,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldWithLengthFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldWithLengthFieldConst,  # noqa: E501
 }
 
 _TYPE_ID_TO_OBJ = {
@@ -1268,11 +1238,11 @@ _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldWithLengthField,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD: _OptionField,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldWithBoolSelectorField,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithUnsignedIntegerSelectorField,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithSignedIntegerSelectorField,
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithUnsignedIntegerSelectorField,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldWithSignedIntegerSelectorField,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD: _VariantField,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithUnsignedIntegerSelectorField,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithSignedIntegerSelectorField,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithUnsignedIntegerSelectorField,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldWithSignedIntegerSelectorField,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_STATIC_BLOB: _StaticBlobField,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD: _DynamicBlobField,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldWithLengthField,

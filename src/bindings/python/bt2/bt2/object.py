@@ -129,9 +129,7 @@ class _SharedObject(_BaseObject, abc.ABC):
     # stealing the caller's reference.
 
     @classmethod
-    def _create_from_ptr_and_get_ref(
-        cls: typing.Type[_SharedObjectT], ptr
-    ) -> _SharedObjectT:
+    def _create_from_ptr_and_get_ref(cls: typing.Type[_SharedObjectT], ptr) -> _SharedObjectT:
         obj = cls._create_from_ptr(ptr)
         cls._get_ref(obj._ptr_internal)
         return obj

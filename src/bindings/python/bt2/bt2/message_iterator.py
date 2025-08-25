@@ -4,16 +4,16 @@
 
 import collections.abc
 
-from bt2 import port as bt2_port
+from bt2 import clock_class as bt2_clock_class
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
-from bt2 import packet as bt2_packet
-from bt2 import stream as bt2_stream
+from bt2 import event_class as bt2_event_class
 from bt2 import message as bt2_message
 from bt2 import native_bt, typing_mod
-from bt2 import clock_class as bt2_clock_class
-from bt2 import event_class as bt2_event_class
+from bt2 import object as bt2_object
+from bt2 import packet as bt2_packet
+from bt2 import port as bt2_port
+from bt2 import stream as bt2_stream
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -26,9 +26,7 @@ class _MessageIterator(collections.abc.Iterator):
         raise NotImplementedError
 
 
-class _UserComponentInputPortMessageIterator(
-    bt2_object._SharedObject, _MessageIterator
-):
+class _UserComponentInputPortMessageIterator(bt2_object._SharedObject, _MessageIterator):
     @staticmethod
     def _get_ref(ptr):
         native_bt.message_iterator_get_ref(ptr)
@@ -44,9 +42,7 @@ class _UserComponentInputPortMessageIterator(
 
     def __next__(self) -> bt2_message._MessageConst:
         if len(self._current_msgs) == self._at:
-            status, msgs = native_bt.bt2_self_component_port_input_get_msg_range(
-                self._ptr
-            )
+            status, msgs = native_bt.bt2_self_component_port_input_get_msg_range(self._ptr)
             bt2_utils._handle_func_status(
                 status, "unexpected error: cannot advance the message iterator"
             )
@@ -92,12 +88,8 @@ class _UserComponentInputPortMessageIterator(
         self._current_msgs.clear()
         self._at = 0
 
-        status = native_bt.message_iterator_seek_ns_from_origin(
-            self._ptr, ns_from_origin
-        )
-        bt2_utils._handle_func_status(
-            status, "message iterator cannot seek given ns from origin"
-        )
+        status = native_bt.message_iterator_seek_ns_from_origin(self._ptr, ns_from_origin)
+        bt2_utils._handle_func_status(status, "message iterator cannot seek given ns from origin")
 
     @property
     def can_seek_forward(self) -> bool:
@@ -110,9 +102,7 @@ class _MessageIteratorConfiguration:
 
     def _set_can_seek_forward(self, value):
         bt2_utils._check_bool(value)
-        native_bt.self_message_iterator_configuration_set_can_seek_forward(
-            self._ptr, value
-        )
+        native_bt.self_message_iterator_configuration_set_can_seek_forward(self._ptr, value)
 
     can_seek_forward = property(fset=_set_can_seek_forward)
 
@@ -261,18 +251,14 @@ class _UserMessageIterator(_MessageIterator):
                 )
         else:
             if event_class.stream_class.default_clock_class is not None:
-                raise ValueError(
-                    "event messages in this stream must have a default clock snapshot"
-                )
+                raise ValueError("event messages in this stream must have a default clock snapshot")
 
             if event_class.stream_class.supports_packets:
                 ptr = native_bt.message_event_create_with_packet(
                     self._bt_ptr, event_class._ptr, parent._ptr
                 )
             else:
-                ptr = native_bt.message_event_create(
-                    self._bt_ptr, event_class._ptr, parent._ptr
-                )
+                ptr = native_bt.message_event_create(self._bt_ptr, event_class._ptr, parent._ptr)
 
         if ptr is None:
             raise bt2_error._MemoryError("cannot create event message object")
@@ -302,9 +288,7 @@ class _UserMessageIterator(_MessageIterator):
 
         ptr = native_bt.message_stream_beginning_create(self._bt_ptr, stream._ptr)
         if ptr is None:
-            raise bt2_error._MemoryError(
-                "cannot create stream beginning message object"
-            )
+            raise bt2_error._MemoryError("cannot create stream beginning message object")
 
         msg = bt2_message._StreamBeginningMessage(ptr)
 
@@ -351,15 +335,14 @@ class _UserMessageIterator(_MessageIterator):
         else:
             if default_clock_snapshot is not None:
                 raise ValueError(
-                    "packet beginning messages in this stream must not have a default clock snapshot"
+                    "packet beginning messages in this stream "
+                    "must not have a default clock snapshot"
                 )
 
             ptr = native_bt.message_packet_beginning_create(self._bt_ptr, packet._ptr)
 
         if ptr is None:
-            raise bt2_error._MemoryError(
-                "cannot create packet beginning message object"
-            )
+            raise bt2_error._MemoryError("cannot create packet beginning message object")
 
         return bt2_message._PacketBeginningMessage(ptr)
 
@@ -416,15 +399,14 @@ class _UserMessageIterator(_MessageIterator):
 
             if beg_clock_snapshot > end_clock_snapshot:
                 raise ValueError(
-                    "beginning default clock snapshot value ({}) is greater than end default clock snapshot value ({})".format(
+                    "beginning default clock snapshot value ({}) is greater than "
+                    "end default clock snapshot value ({})".format(
                         beg_clock_snapshot, end_clock_snapshot
                     )
                 )
 
-            ptr = (
-                native_bt.message_discarded_events_create_with_default_clock_snapshots(
-                    self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
-                )
+            ptr = native_bt.message_discarded_events_create_with_default_clock_snapshots(
+                self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
             )
         else:
             if beg_clock_snapshot is not None or end_clock_snapshot is not None:
@@ -467,15 +449,14 @@ class _UserMessageIterator(_MessageIterator):
 
             if beg_clock_snapshot > end_clock_snapshot:
                 raise ValueError(
-                    "beginning default clock snapshot value ({}) is greater than end default clock snapshot value ({})".format(
+                    "beginning default clock snapshot value ({}) is greater than "
+                    "end default clock snapshot value ({})".format(
                         beg_clock_snapshot, end_clock_snapshot
                     )
                 )
 
-            ptr = (
-                native_bt.message_discarded_packets_create_with_default_clock_snapshots(
-                    self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
-                )
+            ptr = native_bt.message_discarded_packets_create_with_default_clock_snapshots(
+                self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
             )
         else:
             if beg_clock_snapshot is not None or end_clock_snapshot is not None:

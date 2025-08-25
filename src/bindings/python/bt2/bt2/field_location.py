@@ -4,8 +4,8 @@
 
 import enum
 
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
 
 typing = typing_mod._typing_mod
 

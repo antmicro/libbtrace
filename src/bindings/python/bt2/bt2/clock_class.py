@@ -4,10 +4,10 @@
 
 import uuid as uuidp
 
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
 from bt2 import user_attributes as bt2_user_attrs
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -251,9 +251,7 @@ class _ClockClass(bt2_user_attrs._WithUserAttrs, _ClockClassConst):
 
         origin = bt2_utils._check_type(origin, ClockOrigin)
         bt2_utils._check_mip_ge(self, "Custom clock class origin", 1)
-        native_bt.clock_class_set_origin(
-            self._ptr, origin.namespace, origin.name, origin.uid
-        )
+        native_bt.clock_class_set_origin(self._ptr, origin.namespace, origin.name, origin.uid)
 
     def _set_uuid(self, uuid):
         bt2_utils._check_mip_eq(self, "Clock class UUID", 0)

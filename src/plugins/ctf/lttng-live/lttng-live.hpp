@@ -170,8 +170,7 @@ struct lttng_live_metadata
 
     explicit lttng_live_metadata(const bt2::SelfComponent selfComp,
                                  const bt2c::Logger& parentLogger) :
-        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/METADATA"},
-        _mSelfComp {selfComp}
+        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/METADATA"}, _mSelfComp {selfComp}
 
     {
     }
@@ -272,8 +271,7 @@ struct lttng_live_session
 
     explicit lttng_live_session(const bt2c::Logger& parentLogger,
                                 const bt2::SelfComponent selfCompParam) :
-        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/SESSION"},
-        selfComp {selfCompParam}
+        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/SESSION"}, selfComp {selfCompParam}
     {
     }
 
@@ -317,8 +315,7 @@ struct lttng_live_component
 
     explicit lttng_live_component(bt2c::Logger loggerParam,
                                   const bt2::SelfComponent selfCompParam) noexcept :
-        logger {std::move(loggerParam)},
-        selfComp {selfCompParam}
+        logger {std::move(loggerParam)}, selfComp {selfCompParam}
     {
     }
 
@@ -348,9 +345,8 @@ struct lttng_live_msg_iter
     explicit lttng_live_msg_iter(const bt2c::Logger& parentLogger,
                                  const bt2::SelfComponent selfCompParam,
                                  const bt2::SelfMessageIterator selfMsgIter) :
-        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/MSG-ITER"},
-        selfComp {selfCompParam}, selfMsgIter {selfMsgIter},
-        msgComparator {selfComp.graphMipVersion()}
+        logger {parentLogger, "PLUGIN/SRC.CTF.LTTNG-LIVE/MSG-ITER"}, selfComp {selfCompParam},
+        selfMsgIter {selfMsgIter}, msgComparator {selfComp.graphMipVersion()}
     {
     }
 

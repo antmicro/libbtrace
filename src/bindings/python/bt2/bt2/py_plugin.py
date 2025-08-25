@@ -4,9 +4,9 @@
 
 import sys
 
-from bt2 import utils as bt2_utils
 from bt2 import component as bt2_component
 from bt2 import typing_mod
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -33,9 +33,7 @@ def register_plugin(
     ] = None,
 ):
     if module_name not in sys.modules:
-        raise RuntimeError(
-            "cannot find module '{}' in loaded modules".format(module_name)
-        )
+        raise RuntimeError("cannot find module '{}' in loaded modules".format(module_name))
 
     bt2_utils._check_str(name)
 
@@ -51,7 +49,8 @@ def register_plugin(
     if version is not None:
         if not _validate_version(version):
             raise ValueError(
-                "wrong version: expecting a tuple: (major, minor, patch) or (major, minor, patch, extra)"
+                "wrong version: expecting a tuple: (major, minor, patch) "
+                "or (major, minor, patch, extra)"
             )
 
     sys.modules[module_name]._bt_plugin_info = _PluginInfo(
@@ -102,8 +101,8 @@ def _try_load_plugin_module(path):
         return _plugin_infos[path]
 
     import hashlib
-    import inspect
     import importlib.machinery
+    import inspect
 
     if path is None:
         raise TypeError("missing path")

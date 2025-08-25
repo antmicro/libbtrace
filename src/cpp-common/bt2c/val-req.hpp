@@ -781,8 +781,7 @@ public:
      */
     ObjValPropReq(typename ValReq<ValT, ValOpsT>::SP valReq = nullptr,
                   const bool isRequired = false) :
-        _mIsRequired {isRequired},
-        _mValReq {std::move(valReq)}
+        _mIsRequired {isRequired}, _mValReq {std::move(valReq)}
     {
     }
 
@@ -849,8 +848,8 @@ public:
      */
     explicit ObjValReq(PropReqs propReqs, const bool allowUnknownProps,
                        const Logger& parentLogger) :
-        ValHasTypeReq<ValT, ValOpsT> {ValType::Obj, parentLogger},
-        _mPropReqs {std::move(propReqs)}, _mAllowUnknownProps {allowUnknownProps}
+        ValHasTypeReq<ValT, ValOpsT> {ValType::Obj, parentLogger}, _mPropReqs {std::move(propReqs)},
+        _mAllowUnknownProps {allowUnknownProps}
     {
     }
 

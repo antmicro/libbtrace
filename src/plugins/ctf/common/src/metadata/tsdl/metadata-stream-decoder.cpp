@@ -24,8 +24,7 @@ MetadataStreamDecoder::_PktHeader::_PktHeader(
     const std::uint8_t compressionSchemeParam, const std::uint8_t encryptionSchemeParam,
     const std::uint8_t checksumSchemeParam, const std::uint8_t majorVersionParam,
     const std::uint8_t minorVersionParam) :
-    magic {magicParam},
-    uuid {uuidParam}, checksum {checksumParam}, contentLen {contentLenParam},
+    magic {magicParam}, uuid {uuidParam}, checksum {checksumParam}, contentLen {contentLenParam},
     totalLen {totalLenParam}, compressionScheme {compressionSchemeParam},
     encryptionScheme {encryptionSchemeParam}, checksumScheme {checksumSchemeParam},
     majorVersion {majorVersionParam}, minorVersion {minorVersionParam}

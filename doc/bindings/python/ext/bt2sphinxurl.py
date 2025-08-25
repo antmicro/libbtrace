@@ -33,17 +33,15 @@
 #
 #         :bt2link:`libbabeltrace2 <https://babeltrace.org/docs/v@ver@/libbabeltrace2/>`
 
-import re
 import functools
+import re
 
 import docutils
 import docutils.nodes
 import docutils.utils
 
 
-def _bt2man_role(
-    bt2_version, name, rawtext, text, lineno, inliner, options=None, content=None
-):
+def _bt2man_role(bt2_version, name, rawtext, text, lineno, inliner, options=None, content=None):
     # match a manual page reference
     m = re.match(r"^([a-zA-Z0-9_.:-]+)\(([a-zA-Z0-9]+)\)$", text)
 
@@ -67,16 +65,12 @@ def _bt2man_role(
         # link node
         url_tmpl = "https://babeltrace.org/docs/v{ver}/man{vol}/{page}.{vol}/"
         url = url_tmpl.format(ver=bt2_version, vol=vol, page=page)
-        ret_node = docutils.nodes.reference(
-            rawtext, "", ret_node, internal=False, refuri=url
-        )
+        ret_node = docutils.nodes.reference(rawtext, "", ret_node, internal=False, refuri=url)
 
     return [ret_node], []
 
 
-def _bt2link_role(
-    bt2_version, name, rawtext, text, lineno, inliner, options=None, content=None
-):
+def _bt2link_role(bt2_version, name, rawtext, text, lineno, inliner, options=None, content=None):
     # match link text and URL
     m = re.match(r"^([^<]+) <([^>]+)>$", text)
 

@@ -8,9 +8,9 @@ from collections import abc
 from bt2 import native_bt
 
 try:
-    import typing as _typing_mod  # noqa: F401
+    import typing as _typing_mod
 except ImportError:
-    from bt2 import local_typing as _typing_mod  # noqa: F401
+    from bt2 import local_typing as _typing_mod
 
 typing = _typing_mod
 
@@ -63,14 +63,12 @@ class _ErrorCause:
 class _ComponentErrorCause(_ErrorCause):
     def __init__(self, ptr):
         super().__init__(ptr)
-        self._component_name = native_bt.error_cause_component_actor_get_component_name(
-            ptr
-        )
+        self._component_name = native_bt.error_cause_component_actor_get_component_name(ptr)
         self._component_class_type = ComponentClassType(
             native_bt.error_cause_component_actor_get_component_class_type(ptr)
         )
-        self._component_class_name = (
-            native_bt.error_cause_component_actor_get_component_class_name(ptr)
+        self._component_class_name = native_bt.error_cause_component_actor_get_component_class_name(
+            ptr
         )
         self._plugin_name = native_bt.error_cause_component_actor_get_plugin_name(ptr)
 
@@ -100,9 +98,7 @@ class _ComponentClassErrorCause(_ErrorCause):
         self._component_class_name = (
             native_bt.error_cause_component_class_actor_get_component_class_name(ptr)
         )
-        self._plugin_name = native_bt.error_cause_component_class_actor_get_plugin_name(
-            ptr
-        )
+        self._plugin_name = native_bt.error_cause_component_class_actor_get_plugin_name(ptr)
 
     @property
     def component_class_type(self) -> ComponentClassType:
@@ -120,13 +116,9 @@ class _ComponentClassErrorCause(_ErrorCause):
 class _MessageIteratorErrorCause(_ErrorCause):
     def __init__(self, ptr):
         super().__init__(ptr)
-        self._component_name = (
-            native_bt.error_cause_message_iterator_actor_get_component_name(ptr)
-        )
+        self._component_name = native_bt.error_cause_message_iterator_actor_get_component_name(ptr)
         self._component_output_port_name = (
-            native_bt.error_cause_message_iterator_actor_get_component_output_port_name(
-                ptr
-            )
+            native_bt.error_cause_message_iterator_actor_get_component_output_port_name(ptr)
         )
         self._component_class_type = ComponentClassType(
             native_bt.error_cause_message_iterator_actor_get_component_class_type(ptr)
@@ -134,9 +126,7 @@ class _MessageIteratorErrorCause(_ErrorCause):
         self._component_class_name = (
             native_bt.error_cause_message_iterator_actor_get_component_class_name(ptr)
         )
-        self._plugin_name = (
-            native_bt.error_cause_message_iterator_actor_get_plugin_name(ptr)
-        )
+        self._plugin_name = native_bt.error_cause_message_iterator_actor_get_plugin_name(ptr)
 
     @property
     def component_name(self) -> str:
@@ -168,8 +158,7 @@ _ACTOR_TYPE_TO_CLS = {
 
 
 class _Error(Exception, abc.Sequence):
-    """
-    Babeltrace API call error.
+    """Babeltrace API call error.
 
     This exception is raised when a call to the Babeltrace API returns with
     the ERROR or MEMORY_ERROR status codes.
@@ -207,9 +196,7 @@ class _Error(Exception, abc.Sequence):
 
         for i in range(cause_count):
             self._causes.append(
-                _create_error_cause_from_ptr(
-                    native_bt.error_borrow_cause_by_index(self._ptr, i)
-                )
+                _create_error_cause_from_ptr(native_bt.error_borrow_cause_by_index(self._ptr, i))
             )
 
     def __del__(self):

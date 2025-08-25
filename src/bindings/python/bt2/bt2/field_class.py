@@ -2,18 +2,17 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-import enum
 import collections.abc
+import enum
 
+from bt2 import field_location as bt2_field_location
+from bt2 import field_path as bt2_field_path
+from bt2 import integer_range_set as bt2_integer_range_set
+from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import user_attributes as bt2_user_attrs
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
-from bt2 import object as bt2_object
-from bt2 import native_bt
-from bt2 import field_path as bt2_field_path
-from bt2 import typing_mod
-from bt2 import field_location as bt2_field_location
-from bt2 import user_attributes as bt2_user_attrs
-from bt2 import integer_range_set as bt2_integer_range_set
 
 typing = typing_mod._typing_mod
 
@@ -31,21 +30,15 @@ def _create_field_class_from_ptr(ptr):
 
 
 def _create_field_class_from_ptr_and_get_ref_template(type_map, ptr):
-    return _obj_type_from_field_class_ptr_template(
-        type_map, ptr
-    )._create_from_ptr_and_get_ref(ptr)
+    return _obj_type_from_field_class_ptr_template(type_map, ptr)._create_from_ptr_and_get_ref(ptr)
 
 
 def _create_field_class_from_ptr_and_get_ref(ptr):
-    return _create_field_class_from_ptr_and_get_ref_template(
-        _FIELD_CLASS_TYPE_TO_OBJ, ptr
-    )
+    return _create_field_class_from_ptr_and_get_ref_template(_FIELD_CLASS_TYPE_TO_OBJ, ptr)
 
 
 def _create_field_class_from_const_ptr_and_get_ref(ptr):
-    return _create_field_class_from_ptr_and_get_ref_template(
-        _FIELD_CLASS_TYPE_TO_CONST_OBJ, ptr
-    )
+    return _create_field_class_from_ptr_and_get_ref_template(_FIELD_CLASS_TYPE_TO_CONST_OBJ, ptr)
 
 
 class IntegerDisplayBase(enum.IntEnum):
@@ -94,10 +87,8 @@ class _BoolFieldClass(_BoolFieldClassConst, _FieldClass):
 class _BitArrayFieldClassFlagConst:
     def __init__(self, ptr):
         self._label = native_bt.field_class_bit_array_flag_get_label(ptr)
-        self._ranges = (
-            bt2_integer_range_set.UnsignedIntegerRangeSet._create_from_ptr_and_get_ref(
-                native_bt.field_class_bit_array_flag_borrow_index_ranges_const(ptr)
-            )
+        self._ranges = bt2_integer_range_set.UnsignedIntegerRangeSet._create_from_ptr_and_get_ref(
+            native_bt.field_class_bit_array_flag_borrow_index_ranges_const(ptr)
         )
 
     @property
@@ -109,9 +100,7 @@ class _BitArrayFieldClassFlagConst:
         return self._ranges
 
 
-class _BitArrayFieldClassConst(
-    _FieldClassConst, typing.Mapping[str, _BitArrayFieldClassFlagConst]
-):
+class _BitArrayFieldClassConst(_FieldClassConst, typing.Mapping[str, _BitArrayFieldClassFlagConst]):
     _NAME = "Const bit array"
 
     @property
@@ -144,17 +133,13 @@ class _BitArrayFieldClassConst(
 
         for idx in range(len(self)):
             yield native_bt.field_class_bit_array_flag_get_label(
-                native_bt.field_class_bit_array_borrow_flag_by_index_const(
-                    self._ptr, idx
-                )
+                native_bt.field_class_bit_array_borrow_flag_by_index_const(self._ptr, idx)
             )
 
     def __getitem__(self, label: str) -> _BitArrayFieldClassFlagConst:
         bt2_utils._check_mip_ge(self, "Bit array field class flags", 1)
         bt2_utils._check_str(label)
-        flag_ptr = native_bt.field_class_bit_array_borrow_flag_by_label_const(
-            self._ptr, label
-        )
+        flag_ptr = native_bt.field_class_bit_array_borrow_flag_by_label_const(self._ptr, label)
 
         if flag_ptr is None:
             raise KeyError(label)
@@ -172,9 +157,7 @@ class _BitArrayFieldClass(_BitArrayFieldClassConst, _FieldClass):
     ):
         bt2_utils._check_mip_ge(self, "Bit array field class flags", 1)
         bt2_utils._check_str(label)
-        bt2_utils._check_type(
-            index_ranges, bt2_integer_range_set._UnsignedIntegerRangeSetConst
-        )
+        bt2_utils._check_type(index_ranges, bt2_integer_range_set._UnsignedIntegerRangeSetConst)
 
         if label in self:
             raise ValueError("Duplicate flag label '{}'".format(label))
@@ -188,9 +171,7 @@ class _BitArrayFieldClass(_BitArrayFieldClassConst, _FieldClass):
                 )
 
         bt2_utils._handle_func_status(
-            native_bt.field_class_bit_array_add_flag(
-                self._ptr, label, index_ranges._ptr
-            )
+            native_bt.field_class_bit_array_add_flag(self._ptr, label, index_ranges._ptr)
         )
 
     def __iadd__(
@@ -236,9 +217,7 @@ class _UnsignedIntegerFieldClassConst(_IntegerFieldClassConst, _FieldClassConst)
     _NAME = "Const unsigned integer"
 
 
-class _UnsignedIntegerFieldClass(
-    _UnsignedIntegerFieldClassConst, _IntegerFieldClass, _FieldClass
-):
+class _UnsignedIntegerFieldClass(_UnsignedIntegerFieldClassConst, _IntegerFieldClass, _FieldClass):
     _NAME = "Unsigned integer"
 
 
@@ -246,9 +225,7 @@ class _SignedIntegerFieldClassConst(_IntegerFieldClassConst, _FieldClassConst):
     _NAME = "Const signed integer"
 
 
-class _SignedIntegerFieldClass(
-    _SignedIntegerFieldClassConst, _IntegerFieldClass, _FieldClass
-):
+class _SignedIntegerFieldClass(_SignedIntegerFieldClassConst, _IntegerFieldClass, _FieldClass):
     _NAME = "Signed integer"
 
 
@@ -322,9 +299,7 @@ class _EnumerationFieldClassConst(
     def __len__(self) -> int:
         return native_bt.field_class_enumeration_get_mapping_count(self._ptr)
 
-    def mappings_for_value(
-        self, value: int
-    ) -> typing.List[_EnumerationFieldClassMapping]:
+    def mappings_for_value(self, value: int) -> typing.List[_EnumerationFieldClassMapping]:
         self._check_int_type(value)
 
         status, labels = self._get_mapping_labels_for_value(self._ptr, value)
@@ -335,9 +310,7 @@ class _EnumerationFieldClassConst(
 
     def __iter__(self) -> typing.Iterator[str]:
         for idx in range(len(self)):
-            yield self._mapping_pycls(
-                self._borrow_mapping_ptr_by_index(self._ptr, idx)
-            ).label
+            yield self._mapping_pycls(self._borrow_mapping_ptr_by_index(self._ptr, idx)).label
 
     def __getitem__(self, label: str) -> _EnumerationFieldClassMapping:
         bt2_utils._check_str(label)
@@ -350,9 +323,7 @@ class _EnumerationFieldClassConst(
 
 
 class _EnumerationFieldClass(_EnumerationFieldClassConst, _IntegerFieldClass):
-    def _add_mapping(
-        self, label: str, ranges: bt2_integer_range_set._IntegerRangeSetConst
-    ):
+    def _add_mapping(self, label: str, ranges: bt2_integer_range_set._IntegerRangeSetConst):
         bt2_utils._check_str(label)
         bt2_utils._check_type(ranges, self._range_set_pycls)
 
@@ -366,9 +337,7 @@ class _EnumerationFieldClass(_EnumerationFieldClassConst, _IntegerFieldClass):
 
     def _iadd(
         self,
-        mappings: typing.Iterable[
-            typing.Tuple[str, bt2_integer_range_set._IntegerRangeSetConst]
-        ],
+        mappings: typing.Iterable[typing.Tuple[str, bt2_integer_range_set._IntegerRangeSetConst]],
     ) -> "_EnumerationFieldClass":
         for label, ranges in mappings:
             self.add_mapping(label, ranges)
@@ -400,13 +369,9 @@ class _UnsignedEnumerationFieldClass(
 ):
     _NAME = "Unsigned enumeration"
     _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
-    _add_mapping_ptr = staticmethod(
-        native_bt.field_class_enumeration_unsigned_add_mapping
-    )
+    _add_mapping_ptr = staticmethod(native_bt.field_class_enumeration_unsigned_add_mapping)
 
-    def add_mapping(
-        self, label: str, ranges: bt2_integer_range_set._UnsignedIntegerRangeSetConst
-    ):
+    def add_mapping(self, label: str, ranges: bt2_integer_range_set._UnsignedIntegerRangeSetConst):
         self._add_mapping(label, ranges)
 
     def __iadd__(
@@ -421,9 +386,7 @@ class _UnsignedEnumerationFieldClass(
         return self
 
 
-class _SignedEnumerationFieldClassConst(
-    _EnumerationFieldClassConst, _SignedIntegerFieldClassConst
-):
+class _SignedEnumerationFieldClassConst(_EnumerationFieldClassConst, _SignedIntegerFieldClassConst):
     _NAME = "Const signed enumeration"
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_signed_borrow_mapping_by_label_const
@@ -443,13 +406,9 @@ class _SignedEnumerationFieldClass(
 ):
     _NAME = "Signed enumeration"
     _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
-    _add_mapping_ptr = staticmethod(
-        native_bt.field_class_enumeration_signed_add_mapping
-    )
+    _add_mapping_ptr = staticmethod(native_bt.field_class_enumeration_signed_add_mapping)
 
-    def add_mapping(
-        self, label: str, ranges: bt2_integer_range_set._SignedIntegerRangeSetConst
-    ):
+    def add_mapping(self, label: str, ranges: bt2_integer_range_set._SignedIntegerRangeSetConst):
         self._add_mapping(label, ranges)
 
     def __iadd__(
@@ -505,9 +464,7 @@ class _StructureFieldClassMemberConst(bt2_user_attrs._WithUserAttrsConst):
         )
 
 
-class _StructureFieldClassMember(
-    bt2_user_attrs._WithUserAttrs, _StructureFieldClassMemberConst
-):
+class _StructureFieldClassMember(bt2_user_attrs._WithUserAttrs, _StructureFieldClassMemberConst):
     _borrow_field_class_ptr = staticmethod(
         native_bt.field_class_structure_member_borrow_field_class
     )
@@ -533,18 +490,14 @@ class _StructureFieldClassConst(_FieldClassConst, collections.abc.Mapping):
     _borrow_member_ptr_by_name = staticmethod(
         native_bt.field_class_structure_borrow_member_by_name_const
     )
-    _structure_member_field_class_pycls = property(
-        lambda _: _StructureFieldClassMemberConst
-    )
+    _structure_member_field_class_pycls = property(lambda _: _StructureFieldClassMemberConst)
 
     def __len__(self) -> int:
         return native_bt.field_class_structure_get_member_count(self._ptr)
 
     def __getitem__(self, key: str) -> _StructureFieldClassMemberConst:
         if not isinstance(key, str):
-            raise TypeError(
-                "key must be a 'str' object, got '{}'".format(key.__class__.__name__)
-            )
+            raise TypeError("key must be a 'str' object, got '{}'".format(key.__class__.__name__))
 
         member_ptr = self._borrow_member_ptr_by_name(self._ptr, key)
 
@@ -572,12 +525,8 @@ class _StructureFieldClassConst(_FieldClassConst, collections.abc.Mapping):
 
 class _StructureFieldClass(_StructureFieldClassConst, _FieldClass):
     _NAME = "Structure"
-    _borrow_member_by_index = staticmethod(
-        native_bt.field_class_structure_borrow_member_by_index
-    )
-    _borrow_member_ptr_by_name = staticmethod(
-        native_bt.field_class_structure_borrow_member_by_name
-    )
+    _borrow_member_by_index = staticmethod(native_bt.field_class_structure_borrow_member_by_index)
+    _borrow_member_ptr_by_name = staticmethod(native_bt.field_class_structure_borrow_member_by_name)
     _structure_member_field_class_pycls = property(lambda _: _StructureFieldClassMember)
 
     def append_member(
@@ -596,9 +545,7 @@ class _StructureFieldClass(_StructureFieldClassConst, _FieldClass):
         user_attributes_value = bt2_value.create_value(user_attributes)
 
         bt2_utils._handle_func_status(
-            native_bt.field_class_structure_append_member(
-                self._ptr, name, field_class._ptr
-            ),
+            native_bt.field_class_structure_append_member(self._ptr, name, field_class._ptr),
             "cannot append member to structure field class object",
         )
 
@@ -637,9 +584,7 @@ class _OptionFieldClassConst(_FieldClassConst):
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         _create_field_class_from_const_ptr_and_get_ref
     )
-    _borrow_field_class_ptr = staticmethod(
-        native_bt.field_class_option_borrow_field_class_const
-    )
+    _borrow_field_class_ptr = staticmethod(native_bt.field_class_option_borrow_field_class_const)
 
     @property
     def field_class(self) -> _FieldClassConst:
@@ -676,26 +621,20 @@ class _OptionFieldClassWithSelectorFieldConst(_OptionFieldClassConst):
 _OptionWithSelectorFieldClassConst = _OptionFieldClassWithSelectorFieldConst
 
 
-class _OptionFieldClassWithBoolSelectorFieldConst(
-    _OptionFieldClassWithSelectorFieldConst
-):
+class _OptionFieldClassWithBoolSelectorFieldConst(_OptionFieldClassWithSelectorFieldConst):
     _NAME = "Const option (with boolean selector)"
 
     @property
     def selector_is_reversed(self) -> bool:
         return bool(
-            native_bt.field_class_option_with_selector_field_bool_selector_is_reversed(
-                self._ptr
-            )
+            native_bt.field_class_option_with_selector_field_bool_selector_is_reversed(self._ptr)
         )
 
 
 _OptionWithBoolSelectorFieldClassConst = _OptionFieldClassWithBoolSelectorFieldConst
 
 
-class _OptionFieldClassWithIntegerSelectorFieldConst(
-    _OptionFieldClassWithSelectorFieldConst
-):
+class _OptionFieldClassWithIntegerSelectorFieldConst(_OptionFieldClassWithSelectorFieldConst):
     _NAME = "Const option (with integer selector)"
 
     @property
@@ -705,9 +644,7 @@ class _OptionFieldClassWithIntegerSelectorFieldConst(
         )
 
 
-_OptionWithIntegerSelectorFieldClassConst = (
-    _OptionFieldClassWithIntegerSelectorFieldConst
-)
+_OptionWithIntegerSelectorFieldClassConst = _OptionFieldClassWithIntegerSelectorFieldConst
 
 
 class _OptionFieldClassWithUnsignedIntegerSelectorFieldConst(
@@ -742,9 +679,7 @@ _OptionWithSignedIntegerSelectorFieldClassConst = (
 
 class _OptionFieldClass(_OptionFieldClassConst, _FieldClass):
     _NAME = "Option"
-    _borrow_field_class_ptr = staticmethod(
-        native_bt.field_class_option_borrow_field_class
-    )
+    _borrow_field_class_ptr = staticmethod(native_bt.field_class_option_borrow_field_class)
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         _create_field_class_from_ptr_and_get_ref
     )
@@ -790,9 +725,7 @@ class _OptionFieldClassWithUnsignedIntegerSelectorField(
     _NAME = "Option (with unsigned integer selector)"
 
 
-_OptionWithUnsignedIntegerSelectorFieldClass = (
-    _OptionFieldClassWithUnsignedIntegerSelectorField
-)
+_OptionWithUnsignedIntegerSelectorFieldClass = _OptionFieldClassWithUnsignedIntegerSelectorField
 
 
 class _OptionFieldClassWithSignedIntegerSelectorField(
@@ -802,9 +735,7 @@ class _OptionFieldClassWithSignedIntegerSelectorField(
     _NAME = "Option (with signed integer selector)"
 
 
-_OptionWithSignedIntegerSelectorFieldClass = (
-    _OptionFieldClassWithSignedIntegerSelectorField
-)
+_OptionWithSignedIntegerSelectorFieldClass = _OptionFieldClassWithSignedIntegerSelectorField
 
 
 class _VariantFieldClassOptionConst(bt2_user_attrs._WithUserAttrsConst):
@@ -840,15 +771,11 @@ class _VariantFieldClassOptionConst(bt2_user_attrs._WithUserAttrsConst):
         )
 
 
-class _VariantFieldClassOption(
-    bt2_user_attrs._WithUserAttrs, _VariantFieldClassOptionConst
-):
+class _VariantFieldClassOption(bt2_user_attrs._WithUserAttrs, _VariantFieldClassOptionConst):
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         _create_field_class_from_ptr_and_get_ref
     )
-    _borrow_field_class_ptr = staticmethod(
-        native_bt.field_class_variant_option_borrow_field_class
-    )
+    _borrow_field_class_ptr = staticmethod(native_bt.field_class_variant_option_borrow_field_class)
 
     @staticmethod
     def _borrow_user_attributes_ptr(ptr):
@@ -859,9 +786,7 @@ class _VariantFieldClassOption(
         native_bt.field_class_variant_option_set_user_attributes(obj_ptr, value_ptr)
 
 
-class _VariantFieldClassWithIntegerSelectorFieldOptionConst(
-    _VariantFieldClassOptionConst
-):
+class _VariantFieldClassWithIntegerSelectorFieldOptionConst(_VariantFieldClassOptionConst):
     def __init__(self, owning_var_fc, spec_opt_ptr):
         self._spec_ptr = spec_opt_ptr
         super().__init__(owning_var_fc, self._as_option_ptr(spec_opt_ptr))
@@ -955,9 +880,7 @@ class _VariantFieldClassConst(_FieldClassConst, collections.abc.Mapping):
         for idx in range(len(self)):
             yield (
                 native_bt.field_class_variant_option_get_name(
-                    self._as_option_ptr(
-                        self._borrow_option_ptr_by_index(self._ptr, idx)
-                    )
+                    self._as_option_ptr(self._borrow_option_ptr_by_index(self._ptr, idx))
                 )
                 if self.graph_mip_version == 0
                 else idx
@@ -978,9 +901,7 @@ class _VariantFieldClassConst(_FieldClassConst, collections.abc.Mapping):
         bt2_utils._check_str(name)
         return self._borrow_option_ptr_by_name(self._ptr, name)
 
-    def option_with_name(
-        self, name: str
-    ) -> typing.Optional[_VariantFieldClassOptionConst]:
+    def option_with_name(self, name: str) -> typing.Optional[_VariantFieldClassOptionConst]:
         opt_ptr = self._option_with_name(name)
 
         if opt_ptr is None:
@@ -991,12 +912,8 @@ class _VariantFieldClassConst(_FieldClassConst, collections.abc.Mapping):
 
 class _VariantFieldClass(_VariantFieldClassConst, _FieldClass, collections.abc.Mapping):
     _NAME = "Variant"
-    _borrow_option_ptr_by_name = staticmethod(
-        native_bt.field_class_variant_borrow_option_by_name
-    )
-    _borrow_option_ptr_by_index = staticmethod(
-        native_bt.field_class_variant_borrow_option_by_index
-    )
+    _borrow_option_ptr_by_name = staticmethod(native_bt.field_class_variant_borrow_option_by_name)
+    _borrow_option_ptr_by_index = staticmethod(native_bt.field_class_variant_borrow_option_by_index)
     _variant_option_pycls = _VariantFieldClassOption
 
     def __getitem__(self, key: typing.Union[str, int]) -> _VariantFieldClassOption:
@@ -1090,13 +1007,9 @@ class _VariantFieldClassWithIntegerSelectorFieldConst(_VariantFieldClassConst):
     def __getitem__(
         self, key: typing.Union[str, int]
     ) -> _VariantFieldClassWithIntegerSelectorFieldOptionConst:
-        return _VariantFieldClassWithIntegerSelectorFieldOptionConst(
-            self, self._getitem(key)
-        )
+        return _VariantFieldClassWithIntegerSelectorFieldOptionConst(self, self._getitem(key))
 
-    def option_at_index(
-        self, index: int
-    ) -> _VariantFieldClassWithIntegerSelectorFieldOptionConst:
+    def option_at_index(self, index: int) -> _VariantFieldClassWithIntegerSelectorFieldOptionConst:
         return _VariantFieldClassWithIntegerSelectorFieldOptionConst(
             self, self._option_at_index(index)
         )
@@ -1135,9 +1048,7 @@ class _VariantFieldClassWithIntegerSelectorFieldConst(_VariantFieldClassConst):
         )
 
 
-_VariantFieldClassWithIntegerSelectorConst = (
-    _VariantFieldClassWithIntegerSelectorFieldConst
-)
+_VariantFieldClassWithIntegerSelectorConst = _VariantFieldClassWithIntegerSelectorFieldConst
 
 
 class _VariantFieldClassWithIntegerSelectorField(
@@ -1148,16 +1059,10 @@ class _VariantFieldClassWithIntegerSelectorField(
     def __getitem__(
         self, key: typing.Union[str, int]
     ) -> _VariantFieldClassWithIntegerSelectorFieldOption:
-        return _VariantFieldClassWithIntegerSelectorFieldOption(
-            self, self._getitem(key)
-        )
+        return _VariantFieldClassWithIntegerSelectorFieldOption(self, self._getitem(key))
 
-    def option_at_index(
-        self, index: int
-    ) -> _VariantFieldClassWithIntegerSelectorFieldOption:
-        return _VariantFieldClassWithIntegerSelectorFieldOption(
-            self, self._option_at_index(index)
-        )
+    def option_at_index(self, index: int) -> _VariantFieldClassWithIntegerSelectorFieldOption:
+        return _VariantFieldClassWithIntegerSelectorFieldOption(self, self._option_at_index(index))
 
     def option_with_name(
         self, name: str
@@ -1241,9 +1146,7 @@ class _VariantFieldClassWithUnsignedIntegerSelectorFieldConst(
     _VariantFieldClassWithIntegerSelectorFieldConst
 ):
     _NAME = "Const variant (with unsigned integer selector)"
-    _variant_option_pycls = (
-        _VariantFieldClassWithUnsignedIntegerSelectorFieldOptionConst
-    )
+    _variant_option_pycls = _VariantFieldClassWithUnsignedIntegerSelectorFieldOptionConst
     _borrow_option_ptr_by_name = staticmethod(
         native_bt.field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const
     )
@@ -1276,9 +1179,7 @@ class _VariantFieldClassWithUnsignedIntegerSelectorFieldConst(
         if opt_ptr is None:
             return None
 
-        return _VariantFieldClassWithUnsignedIntegerSelectorFieldOptionConst(
-            self, opt_ptr
-        )
+        return _VariantFieldClassWithUnsignedIntegerSelectorFieldOptionConst(self, opt_ptr)
 
 
 _VariantFieldClassWithUnsignedIntegerSelectorConst = (
@@ -1300,9 +1201,7 @@ class _VariantFieldClassWithUnsignedIntegerSelectorField(
     def __getitem__(
         self, key: typing.Union[str, int]
     ) -> _VariantFieldClassWithUnsignedIntegerSelectorFieldOption:
-        return _VariantFieldClassWithUnsignedIntegerSelectorFieldOption(
-            self, self._getitem(key)
-        )
+        return _VariantFieldClassWithUnsignedIntegerSelectorFieldOption(self, self._getitem(key))
 
     def option_at_index(
         self, index: int
@@ -1351,9 +1250,7 @@ class _VariantFieldClassWithUnsignedIntegerSelectorField(
         return self._iadd(options)
 
 
-_VariantFieldClassWithUnsignedIntegerSelector = (
-    _VariantFieldClassWithUnsignedIntegerSelectorField
-)
+_VariantFieldClassWithUnsignedIntegerSelector = _VariantFieldClassWithUnsignedIntegerSelectorField
 
 
 class _VariantFieldClassWithSignedIntegerSelectorFieldConst(
@@ -1374,9 +1271,7 @@ class _VariantFieldClassWithSignedIntegerSelectorFieldConst(
     def __getitem__(
         self, key: typing.Union[str, int]
     ) -> _VariantFieldClassWithSignedIntegerSelectorFieldOptionConst:
-        return _VariantFieldClassWithSignedIntegerSelectorFieldOptionConst(
-            self, self._getitem(key)
-        )
+        return _VariantFieldClassWithSignedIntegerSelectorFieldOptionConst(self, self._getitem(key))
 
     def option_at_index(
         self, index: int
@@ -1393,9 +1288,7 @@ class _VariantFieldClassWithSignedIntegerSelectorFieldConst(
         if opt_ptr is None:
             return None
 
-        return _VariantFieldClassWithSignedIntegerSelectorFieldOptionConst(
-            self, opt_ptr
-        )
+        return _VariantFieldClassWithSignedIntegerSelectorFieldOptionConst(self, opt_ptr)
 
 
 _VariantFieldClassWithSignedIntegerSelectorConst = (
@@ -1417,13 +1310,9 @@ class _VariantFieldClassWithSignedIntegerSelectorField(
     def __getitem__(
         self, key: typing.Union[str, int]
     ) -> _VariantFieldClassWithSignedIntegerSelectorFieldOption:
-        return _VariantFieldClassWithSignedIntegerSelectorFieldOption(
-            self, self._getitem(key)
-        )
+        return _VariantFieldClassWithSignedIntegerSelectorFieldOption(self, self._getitem(key))
 
-    def option_at_index(
-        self, index: int
-    ) -> _VariantFieldClassWithSignedIntegerSelectorFieldOption:
+    def option_at_index(self, index: int) -> _VariantFieldClassWithSignedIntegerSelectorFieldOption:
         return _VariantFieldClassWithSignedIntegerSelectorFieldOption(
             self, self._option_at_index(index)
         )
@@ -1468,9 +1357,7 @@ class _VariantFieldClassWithSignedIntegerSelectorField(
         return self._iadd(options)
 
 
-_VariantFieldClassWithSignedIntegerSelector = (
-    _VariantFieldClassWithSignedIntegerSelectorField
-)
+_VariantFieldClassWithSignedIntegerSelector = _VariantFieldClassWithSignedIntegerSelectorField
 
 
 class _ArrayFieldClassConst(_FieldClassConst):
@@ -1538,9 +1425,7 @@ class _DynamicArrayFieldClassWithLengthFieldConst(_DynamicArrayFieldClassConst):
         )
 
 
-_DynamicArrayWithLengthFieldFieldClassConst = (
-    _DynamicArrayFieldClassWithLengthFieldConst
-)
+_DynamicArrayWithLengthFieldFieldClassConst = _DynamicArrayFieldClassWithLengthFieldConst
 
 
 class _DynamicArrayFieldClass(_DynamicArrayFieldClassConst, _ArrayFieldClass):
@@ -1617,17 +1502,17 @@ _FIELD_CLASS_TYPE_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD: _DynamicArrayFieldClassConst,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldClassWithLengthFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldClassWithLengthFieldConst,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD: _OptionFieldClassConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldClassWithBoolSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithUnsignedIntegerSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithSignedIntegerSelectorFieldConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD: _VariantFieldClassWithoutSelectorConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithUnsignedIntegerSelectorConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithSignedIntegerSelectorConst,
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldClassWithBoolSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithUnsignedIntegerSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithSignedIntegerSelectorFieldConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD: _VariantFieldClassWithoutSelectorConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithUnsignedIntegerSelectorConst,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithSignedIntegerSelectorConst,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_STATIC_BLOB: _StaticBlobFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD: _DynamicBlobFieldClassConst,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldClassWithLengthFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldClassWithLengthFieldConst,  # noqa: E501
 }
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
@@ -1643,15 +1528,15 @@ _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClass,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClass,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD: _DynamicArrayFieldClass,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldClassWithLengthField,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayFieldClassWithLengthField,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD: _OptionFieldClass,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldClassWithBoolSelectorField,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithUnsignedIntegerSelectorField,
-    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithSignedIntegerSelectorField,
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD: _OptionFieldClassWithBoolSelectorField,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithUnsignedIntegerSelectorField,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _OptionFieldClassWithSignedIntegerSelectorField,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD: _VariantFieldClassWithoutSelector,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithUnsignedIntegerSelector,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithSignedIntegerSelector,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithUnsignedIntegerSelector,  # noqa: E501
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD: _VariantFieldClassWithSignedIntegerSelector,  # noqa: E501
     native_bt.FIELD_CLASS_TYPE_STATIC_BLOB: _StaticBlobFieldClass,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD: _DynamicBlobFieldClass,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldClassWithLengthField,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD: _DynamicBlobFieldClassWithLengthField,  # noqa: E501
 }

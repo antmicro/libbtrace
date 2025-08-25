@@ -10,8 +10,7 @@ typing = typing_mod._typing_mod
 
 
 class UnknownObject(Exception):
-    """
-    Raised when a component class handles a query for an object it doesn't
+    """Raised when a component class handles a query for an object it doesn't
     know about.
     """
 
@@ -59,9 +58,7 @@ _Type = typing.TypeVar("_Type")
 
 def _check_type(o: typing.Any, expected_type: typing.Type[_Type]) -> _Type:
     if not isinstance(o, expected_type):
-        raise TypeError(
-            "'{}' is not a '{}' object".format(o.__class__.__name__, expected_type)
-        )
+        raise TypeError("'{}' is not a '{}' object".format(o.__class__.__name__, expected_type))
 
     return o
 
@@ -133,9 +130,7 @@ def _mip_version_from_obj(obj) -> int:
     elif hasattr(obj, "_graph_mip_version"):
         return obj._graph_mip_version
     else:
-        raise RuntimeError(
-            "object does not have a property to get the graph's MIP version"
-        )
+        raise RuntimeError("object does not have a property to get the graph's MIP version")
 
 
 def _check_mip_ge(obj, what, mip):

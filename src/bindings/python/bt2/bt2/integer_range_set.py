@@ -5,9 +5,9 @@
 import collections.abc
 
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -23,9 +23,7 @@ class _IntegerRangeConst:
 
         if lower > upper:
             raise ValueError(
-                "range's lower bound ({}) is greater than its upper bound ({})".format(
-                    lower, upper
-                )
+                "range's lower bound ({}) is greater than its upper bound ({})".format(lower, upper)
             )
 
         self._lower = lower
@@ -75,9 +73,7 @@ class UnsignedIntegerRange(_UnsignedIntegerRangeConst, _IntegerRange):
 
 class _IntegerRangeSetConst(bt2_object._SharedObject, collections.abc.Set):
     def __len__(self) -> int:
-        return native_bt.integer_range_set_get_range_count(
-            self._as_range_set_ptr(self._ptr)
-        )
+        return native_bt.integer_range_set_get_range_count(self._as_range_set_ptr(self._ptr))
 
     def __contains__(self, other_range: object) -> bool:
         for rg in self:
@@ -89,9 +85,7 @@ class _IntegerRangeSetConst(bt2_object._SharedObject, collections.abc.Set):
     def __iter__(self) -> typing.Iterator[_IntegerRangeConst]:
         for idx in range(len(self)):
             rg_ptr = self._borrow_range_ptr_by_index(self._ptr, idx)
-            yield self._range_pycls(
-                self._range_get_lower(rg_ptr), self._range_get_upper(rg_ptr)
-            )
+            yield self._range_pycls(self._range_get_lower(rg_ptr), self._range_get_upper(rg_ptr))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, _IntegerRangeSetConst):
@@ -128,9 +122,7 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
             for rg in ranges:
                 self.add(rg)
 
-    def add(
-        self, rg: typing.Union[_IntegerRange, typing.Union[typing.Tuple[int, int], int]]
-    ):
+    def add(self, rg: typing.Union[_IntegerRange, typing.Union[typing.Tuple[int, int], int]]):
         if type(rg) is not self._range_pycls:
             if self._range_pycls._is_type(rg):
                 rg = self._range_pycls(rg)
@@ -156,9 +148,7 @@ class _SignedIntegerRangeSetConst(_IntegerRangeSetConst):
     def _put_ref(ptr):
         native_bt.integer_range_set_signed_put_ref(ptr)
 
-    _as_range_set_ptr = staticmethod(
-        native_bt.integer_range_set_signed_as_range_set_const
-    )
+    _as_range_set_ptr = staticmethod(native_bt.integer_range_set_signed_as_range_set_const)
     _borrow_range_ptr_by_index = staticmethod(
         native_bt.integer_range_set_signed_borrow_range_by_index_const
     )
@@ -183,9 +173,7 @@ class _UnsignedIntegerRangeSetConst(_IntegerRangeSetConst):
     def _put_ref(ptr):
         native_bt.integer_range_set_unsigned_put_ref(ptr)
 
-    _as_range_set_ptr = staticmethod(
-        native_bt.integer_range_set_unsigned_as_range_set_const
-    )
+    _as_range_set_ptr = staticmethod(native_bt.integer_range_set_unsigned_as_range_set_const)
     _borrow_range_ptr_by_index = staticmethod(
         native_bt.integer_range_set_unsigned_borrow_range_by_index_const
     )

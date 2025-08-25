@@ -4,8 +4,8 @@
 
 
 from bt2 import field as bt2_field
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
 
 typing = typing_mod._typing_mod
 
@@ -29,17 +29,13 @@ class _PacketConst(bt2_object._SharedObject):
         native_bt.packet_put_ref(ptr)
 
     _borrow_stream_ptr = staticmethod(native_bt.packet_borrow_stream_const)
-    _borrow_context_field_ptr = staticmethod(
-        native_bt.packet_borrow_context_field_const
-    )
+    _borrow_context_field_ptr = staticmethod(native_bt.packet_borrow_context_field_const)
     _stream_pycls = property(lambda _: _bt2_stream()._StreamConst)
     _create_field_from_ptr = staticmethod(bt2_field._create_field_from_const_ptr)
 
     @property
     def stream(self) -> "bt2_stream._StreamConst":
-        return self._stream_pycls._create_from_ptr_and_get_ref(
-            self._borrow_stream_ptr(self._ptr)
-        )
+        return self._stream_pycls._create_from_ptr_and_get_ref(self._borrow_stream_ptr(self._ptr))
 
     @property
     def context_field(self) -> typing.Optional[bt2_field._StructureFieldConst]:
@@ -48,9 +44,7 @@ class _PacketConst(bt2_object._SharedObject):
         if field_ptr is None:
             return
 
-        return self._create_field_from_ptr(
-            field_ptr, self._ptr, self._get_ref, self._put_ref
-        )
+        return self._create_field_from_ptr(field_ptr, self._ptr, self._get_ref, self._put_ref)
 
 
 class _Packet(_PacketConst):

@@ -92,8 +92,7 @@ public:
      */
     explicit Logger(const bt2::SelfComponentClass selfCompCls, const bt2::LoggingLevel logLevel,
                     std::string tag) noexcept :
-        _mSelfCompCls {selfCompCls},
-        _mLevel {static_cast<Level>(logLevel)}, _mTag {std::move(tag)}
+        _mSelfCompCls {selfCompCls}, _mLevel {static_cast<Level>(logLevel)}, _mTag {std::move(tag)}
     {
     }
 
@@ -103,8 +102,8 @@ public:
      */
     explicit Logger(const bt2::SelfComponentClass selfCompCls,
                     const bt2::PrivateQueryExecutor privQueryExec, std::string tag) noexcept :
-        _mSelfCompCls {selfCompCls},
-        _mLevel {static_cast<Level>(privQueryExec.loggingLevel())}, _mTag {std::move(tag)}
+        _mSelfCompCls {selfCompCls}, _mLevel {static_cast<Level>(privQueryExec.loggingLevel())},
+        _mTag {std::move(tag)}
     {
     }
 

@@ -4,12 +4,12 @@
 
 import enum
 
+from bt2 import field_class as bt2_field_class
+from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import user_attributes as bt2_user_attrs
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
-from bt2 import object as bt2_object
-from bt2 import native_bt, typing_mod
-from bt2 import field_class as bt2_field_class
-from bt2 import user_attributes as bt2_user_attrs
 
 typing = typing_mod._typing_mod
 
@@ -50,18 +50,14 @@ class _EventClassConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsCo
     def _put_ref(ptr):
         native_bt.event_class_put_ref(ptr)
 
-    _borrow_stream_class_ptr = staticmethod(
-        native_bt.event_class_borrow_stream_class_const
-    )
+    _borrow_stream_class_ptr = staticmethod(native_bt.event_class_borrow_stream_class_const)
     _borrow_specific_context_field_class_ptr = staticmethod(
         native_bt.event_class_borrow_specific_context_field_class_const
     )
     _borrow_payload_field_class_ptr = staticmethod(
         native_bt.event_class_borrow_payload_field_class_const
     )
-    _borrow_user_attributes_ptr = staticmethod(
-        native_bt.event_class_borrow_user_attributes_const
-    )
+    _borrow_user_attributes_ptr = staticmethod(native_bt.event_class_borrow_user_attributes_const)
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         bt2_field_class._create_field_class_from_const_ptr_and_get_ref
     )
@@ -139,12 +135,8 @@ class _EventClass(bt2_user_attrs._WithUserAttrs, _EventClassConst):
     _borrow_specific_context_field_class_ptr = staticmethod(
         native_bt.event_class_borrow_specific_context_field_class
     )
-    _borrow_payload_field_class_ptr = staticmethod(
-        native_bt.event_class_borrow_payload_field_class
-    )
-    _borrow_user_attributes_ptr = staticmethod(
-        native_bt.event_class_borrow_user_attributes
-    )
+    _borrow_payload_field_class_ptr = staticmethod(native_bt.event_class_borrow_payload_field_class)
+    _borrow_user_attributes_ptr = staticmethod(native_bt.event_class_borrow_user_attributes)
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         bt2_field_class._create_field_class_from_ptr_and_get_ref
     )
@@ -200,9 +192,7 @@ class _EventClass(bt2_user_attrs._WithUserAttrs, _EventClassConst):
 
     def _set_payload_field_class(self, payload_field_class):
         bt2_utils._handle_func_status(
-            native_bt.event_class_set_payload_field_class(
-                self._ptr, payload_field_class._ptr
-            ),
+            native_bt.event_class_set_payload_field_class(self._ptr, payload_field_class._ptr),
             "cannot set event class object's payload field class",
         )
 
@@ -253,6 +243,4 @@ class _EventClass(bt2_user_attrs._WithUserAttrs, _EventClassConst):
             )
 
         if payload_field_class is not None:
-            bt2_utils._check_type(
-                payload_field_class, bt2_field_class._StructureFieldClass
-            )
+            bt2_utils._check_type(payload_field_class, bt2_field_class._StructureFieldClass)

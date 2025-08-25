@@ -3,15 +3,15 @@
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
 import abc
+import collections.abc
+import functools
 import math
 import numbers
-import functools
-import collections.abc
 
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
 from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -80,9 +80,7 @@ def create_value(value: "_ConvertibleToValue") -> typing.Optional["_Value"]:
     if isinstance(value, collections.abc.Mapping):
         return MapValue(value)
 
-    raise TypeError(
-        "cannot create value object from '{}' object".format(value.__class__.__name__)
-    )
+    raise TypeError("cannot create value object from '{}' object".format(value.__class__.__name__))
 
 
 class _ValueConst(bt2_object._SharedObject, metaclass=abc.ABCMeta):
@@ -95,18 +93,14 @@ class _ValueConst(bt2_object._SharedObject, metaclass=abc.ABCMeta):
         native_bt.value_put_ref(ptr)
 
     _create_value_from_ptr = staticmethod(_create_from_const_ptr)
-    _create_value_from_ptr_and_get_ref = staticmethod(
-        _create_from_const_ptr_and_get_ref
-    )
+    _create_value_from_ptr_and_get_ref = staticmethod(_create_from_const_ptr_and_get_ref)
 
     def __ne__(self, other) -> bool:
         return not (self == other)
 
     def _check_create_status(self, ptr):
         if ptr is None:
-            raise bt2_error._MemoryError(
-                "cannot create {} value object".format(self._NAME.lower())
-            )
+            raise bt2_error._MemoryError("cannot create {} value object".format(self._NAME.lower()))
 
 
 class _Value(_ValueConst):
@@ -130,9 +124,7 @@ class _NumericValueConst(_ValueConst):
         if isinstance(other, numbers.Complex):
             return complex(other)
 
-        raise TypeError(
-            "'{}' object is not a number object".format(other.__class__.__name__)
-        )
+        raise TypeError("'{}' object is not a number object".format(other.__class__.__name__))
 
     def __int__(self) -> int:
         return int(self._value)
@@ -475,9 +467,7 @@ class _Container(_ContainerConst):
 
 class _ArrayValueConst(_ContainerConst, collections.abc.Sequence, _ValueConst):
     _NAME = "Const array"
-    _borrow_element_by_index = staticmethod(
-        native_bt.value_array_borrow_element_by_index_const
-    )
+    _borrow_element_by_index = staticmethod(native_bt.value_array_borrow_element_by_index_const)
     _is_const = True
 
     def __eq__(self, other: object) -> bool:
@@ -523,9 +513,7 @@ class _ArrayValueConst(_ContainerConst, collections.abc.Sequence, _ValueConst):
 
 class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, _Value):
     _NAME = "Array"
-    _borrow_element_by_index = staticmethod(
-        native_bt.value_array_borrow_element_by_index
-    )
+    _borrow_element_by_index = staticmethod(native_bt.value_array_borrow_element_by_index)
 
     def __init__(self, value: typing.Optional[typing.Iterable] = None):
         ptr = native_bt.value_array_create()
@@ -559,9 +547,7 @@ class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, 
         else:
             ptr = value._ptr
 
-        bt2_utils._handle_func_status(
-            native_bt.value_array_append_element(self._ptr, ptr)
-        )
+        bt2_utils._handle_func_status(native_bt.value_array_append_element(self._ptr, ptr))
 
     def __iadd__(self, iterable: typing.Iterable):
         # Python will raise a TypeError if there's anything wrong with
@@ -635,9 +621,7 @@ class _MapValueConst(_ContainerConst, collections.abc.Mapping, _ValueConst):
 
     def __getitem__(self, key: str) -> typing.Optional[_ValueConst]:
         self._check_key(key)
-        return self._create_value_from_ptr_and_get_ref(
-            self._borrow_entry_value_ptr(self._ptr, key)
-        )
+        return self._create_value_from_ptr_and_get_ref(self._borrow_entry_value_ptr(self._ptr, key))
 
     def __iter__(self) -> typing.Iterator[str]:
         return _MapValueKeyIterator(self)
@@ -681,12 +665,8 @@ _ConvertibleToSignedIntegerValue = typing.Union[int, _SignedIntegerValueConst]
 _ConvertibleToUnsignedIntegerValue = _UnsignedIntegerValueConst
 _ConvertibleToRealValue = typing.Union[float, _RealValueConst]
 _ConvertibleToStringValue = typing.Union[str, _StringValueConst]
-_ConvertibleToArrayValue = typing.Union[
-    typing.Sequence["_ConvertibleToValue"], _ArrayValueConst
-]
-_ConvertibleToMapValue = typing.Union[
-    typing.Mapping[str, "_ConvertibleToValue"], _MapValueConst
-]
+_ConvertibleToArrayValue = typing.Union[typing.Sequence["_ConvertibleToValue"], _ArrayValueConst]
+_ConvertibleToMapValue = typing.Union[typing.Mapping[str, "_ConvertibleToValue"], _MapValueConst]
 _ConvertibleToValue = typing.Union[
     None,
     _ConvertibleToBoolValue,

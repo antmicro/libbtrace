@@ -4,8 +4,8 @@
 
 import enum
 
-from bt2 import utils as bt2_utils
 from bt2 import native_bt
+from bt2 import utils as bt2_utils
 
 
 class LoggingLevel(enum.Enum):

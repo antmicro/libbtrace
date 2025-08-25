@@ -12,6 +12,6 @@ try:
     # @see https://github.com/python/typing/issues/266
     if major == 3 and minor == 5 and micro < 3:
         raise ImportError
-    import typing as _typing_mod  # noqa: F401
+    import typing as _typing_mod
 except ImportError:
     from bt2 import local_typing as _typing_mod  # noqa: F401

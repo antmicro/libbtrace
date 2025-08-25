@@ -87,8 +87,7 @@ struct ctf_fs_ds_index_entry
 {
     ctf_fs_ds_index_entry(const bt2c::CStringView pathParam, const bt2c::DataLen offsetInFileParam,
                           const bt2c::DataLen packetSizeParam) :
-        path {pathParam},
-        offsetInFile {offsetInFileParam}, offsetInStream {offsetInFileParam},
+        path {pathParam}, offsetInFile {offsetInFileParam}, offsetInStream {offsetInFileParam},
         packetSize {packetSizeParam}
     {
         BT_ASSERT(path);
@@ -139,8 +138,8 @@ struct ctf_fs_ds_file_group
                                   const ctf::src::DataStreamCls& dataStreamClsParam,
                                   const uint64_t streamInstanceId,
                                   ctf_fs_ds_index indexParam) noexcept :
-        dataStreamCls {&dataStreamClsParam},
-        stream_id {streamInstanceId}, ctf_fs_trace {ctfFsTrace},
+        dataStreamCls {&dataStreamClsParam}, stream_id {streamInstanceId},
+        ctf_fs_trace {ctfFsTrace},
         /* Don't use brace initialization, because of gcc 4.8. */
         index(std::move(indexParam))
     {

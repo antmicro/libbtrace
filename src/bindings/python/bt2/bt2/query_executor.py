@@ -4,12 +4,12 @@
 
 
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
-from bt2 import value as bt2_value
-from bt2 import object as bt2_object
+from bt2 import interrupter as bt2_interrupter
 from bt2 import logging as bt2_logging
 from bt2 import native_bt, typing_mod
-from bt2 import interrupter as bt2_interrupter
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
 
 typing = typing_mod._typing_mod
 
@@ -81,16 +81,10 @@ class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
 
         cc_ptr = component_class._bt_component_class_ptr()
 
-        if method_obj is not None and not native_bt.bt2_is_python_component_class(
-            cc_ptr
-        ):
-            raise ValueError(
-                "cannot pass a Python object to a non-Python component class"
-            )
+        if method_obj is not None and not native_bt.bt2_is_python_component_class(cc_ptr):
+            raise ValueError("cannot pass a Python object to a non-Python component class")
 
-        ptr = native_bt.bt2_query_executor_create(
-            cc_ptr, object_name, params_ptr, method_obj
-        )
+        ptr = native_bt.bt2_query_executor_create(cc_ptr, object_name, params_ptr, method_obj)
 
         if ptr is None:
             raise bt2_error._MemoryError("cannot create query executor object")

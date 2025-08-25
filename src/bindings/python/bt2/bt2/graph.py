@@ -4,18 +4,17 @@
 
 import functools
 
-from bt2 import mip as bt2_mip
-from bt2 import port as bt2_port
+from bt2 import component as bt2_component
+from bt2 import connection as bt2_connection
 from bt2 import error as bt2_error
+from bt2 import interrupter as bt2_interrupter
+from bt2 import logging as bt2_logging
+from bt2 import mip as bt2_mip
+from bt2 import native_bt, typing_mod
+from bt2 import object as bt2_object
+from bt2 import port as bt2_port
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
-from bt2 import object as bt2_object
-from bt2 import logging as bt2_logging
-from bt2 import component as bt2_component
-from bt2 import native_bt
-from bt2 import connection as bt2_connection
-from bt2 import typing_mod
-from bt2 import interrupter as bt2_interrupter
 
 typing = typing_mod._typing_mod
 
@@ -24,9 +23,7 @@ def _graph_port_added_listener_from_native(
     user_listener, component_ptr, component_type, port_ptr, port_type
 ):
     user_listener(
-        bt2_component._create_component_from_const_ptr_and_get_ref(
-            component_ptr, component_type
-        ),
+        bt2_component._create_component_from_const_ptr_and_get_ref(component_ptr, component_type),
         bt2_port._create_from_const_ptr_and_get_ref(port_ptr, port_type),
     )
 
@@ -68,8 +65,7 @@ class Graph(bt2_object._SharedObject):
         params: bt2_component._ComponentParams = None,
         obj: object = None,
         logging_level: bt2_logging.LoggingLevel = bt2_logging.LoggingLevel.NONE,
-    ) -> bt2_component._GenericSourceComponentConst:
-        ...
+    ) -> bt2_component._GenericSourceComponentConst: ...
 
     @typing.overload
     def add_component(  # noqa: F811
@@ -82,8 +78,7 @@ class Graph(bt2_object._SharedObject):
         params: bt2_component._ComponentParams = None,
         obj: object = None,
         logging_level: bt2_logging.LoggingLevel = bt2_logging.LoggingLevel.NONE,
-    ) -> bt2_component._GenericFilterComponentConst:
-        ...
+    ) -> bt2_component._GenericFilterComponentConst: ...
 
     @typing.overload
     def add_component(  # noqa: F811
@@ -96,8 +91,7 @@ class Graph(bt2_object._SharedObject):
         params: bt2_component._ComponentParams = None,
         obj: object = None,
         logging_level: bt2_logging.LoggingLevel = bt2_logging.LoggingLevel.NONE,
-    ) -> bt2_component._GenericSinkComponentConst:
-        ...
+    ) -> bt2_component._GenericSinkComponentConst: ...
 
     def add_component(  # noqa: F811
         self,
@@ -136,9 +130,7 @@ class Graph(bt2_object._SharedObject):
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         else:
             raise TypeError(
-                "'{}' is not a component class".format(
-                    component_class.__class__.__name__
-                )
+                "'{}' is not a component class".format(component_class.__class__.__name__)
             )
 
         bt2_utils._check_str(name)
@@ -162,9 +154,7 @@ class Graph(bt2_object._SharedObject):
             logging_level.value,
         )
         bt2_utils._handle_func_status(status, "cannot add component to graph")
-        return bt2_component._create_component_from_const_ptr_and_get_ref(
-            comp_ptr, cc_type
-        )
+        return bt2_component._create_component_from_const_ptr_and_get_ref(comp_ptr, cc_type)
 
     def connect_ports(
         self,
@@ -176,28 +166,19 @@ class Graph(bt2_object._SharedObject):
         status, conn_ptr = native_bt.graph_connect_ports(
             self._ptr, upstream_port._ptr, downstream_port._ptr
         )
-        bt2_utils._handle_func_status(
-            status, "cannot connect component ports within graph"
-        )
+        bt2_utils._handle_func_status(status, "cannot connect component ports within graph")
         return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     def add_port_added_listener(
         self,
-        listener: typing.Callable[
-            [bt2_component._ComponentConst, bt2_port._PortConst], None
-        ],
+        listener: typing.Callable[[bt2_component._ComponentConst, bt2_port._PortConst], None],
     ):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        listener_from_native = functools.partial(
-            _graph_port_added_listener_from_native, listener
-        )
+        listener_from_native = functools.partial(_graph_port_added_listener_from_native, listener)
 
-        if (
-            native_bt.bt2_graph_add_port_added_listener(self._ptr, listener_from_native)
-            is None
-        ):
+        if native_bt.bt2_graph_add_port_added_listener(self._ptr, listener_from_native) is None:
             raise bt2_error._Error("cannot add listener to graph object")
 
         # keep the partial's reference

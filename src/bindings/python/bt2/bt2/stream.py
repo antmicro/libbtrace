@@ -3,12 +3,12 @@
 # Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
 
 from bt2 import error as bt2_error
-from bt2 import utils as bt2_utils
+from bt2 import native_bt, typing_mod
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
-from bt2 import native_bt, typing_mod
 from bt2 import stream_class as bt2_stream_class
 from bt2 import user_attributes as bt2_user_attrs
+from bt2 import utils as bt2_utils
 
 typing = typing_mod._typing_mod
 
@@ -57,9 +57,7 @@ class _StreamConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsConst)
 
     @property
     def trace(self) -> "bt2_trace._TraceConst":
-        return self._trace_pycls._create_from_ptr_and_get_ref(
-            self._borrow_trace_ptr(self._ptr)
-        )
+        return self._trace_pycls._create_from_ptr_and_get_ref(self._borrow_trace_ptr(self._ptr))
 
 
 class _Stream(bt2_user_attrs._WithUserAttrs, _StreamConst):
@@ -75,9 +73,7 @@ class _Stream(bt2_user_attrs._WithUserAttrs, _StreamConst):
 
     def create_packet(self) -> bt2_packet._Packet:
         if not self.cls.supports_packets:
-            raise ValueError(
-                "cannot create packet: stream class does not support packets"
-            )
+            raise ValueError("cannot create packet: stream class does not support packets")
 
         packet_ptr = native_bt.packet_create(self._ptr)
 

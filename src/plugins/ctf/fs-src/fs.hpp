@@ -32,8 +32,8 @@ struct ctf_fs_trace
     explicit ctf_fs_trace(const ctf::src::ClkClsCfg& clkClsCfg,
                           const bt2::OptionalBorrowedObject<bt2::SelfComponent> selfComp,
                           const bt2c::Logger& parentLogger) :
-        _mLogger {parentLogger, "PLUGIN/SRC.CTF.FS/TRACE"},
-        _mClkClsCfg {clkClsCfg}, _mSelfComp {selfComp}
+        _mLogger {parentLogger, "PLUGIN/SRC.CTF.FS/TRACE"}, _mClkClsCfg {clkClsCfg},
+        _mSelfComp {selfComp}
     {
     }
 
@@ -94,8 +94,7 @@ struct ctf_fs_component
 
     explicit ctf_fs_component(const ctf::src::ClkClsCfg& clkClsCfgParam,
                               const bt2c::Logger& parentLogger) noexcept :
-        logger {parentLogger, "PLUGIN/SRC.CTF.FS/COMP"},
-        clkClsCfg {clkClsCfgParam}
+        logger {parentLogger, "PLUGIN/SRC.CTF.FS/COMP"}, clkClsCfg {clkClsCfgParam}
     {
     }
 

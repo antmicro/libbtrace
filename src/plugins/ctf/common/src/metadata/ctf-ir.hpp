@@ -473,7 +473,7 @@ template <typename FcT>
 class KeyFcMixin
 {
 public:
-    explicit KeyFcMixin() noexcept {};
+    explicit KeyFcMixin() noexcept { };
 
     const KeyValSavingIndexes& keyValSavingIndexes() const noexcept
     {
@@ -666,7 +666,7 @@ private:
 class DependentFcMixin
 {
 public:
-    explicit DependentFcMixin() noexcept {};
+    explicit DependentFcMixin() noexcept { };
 
     /*
      * Index of the saved key value of this field class.
@@ -725,7 +725,7 @@ public:
     using SavedKeyValCountUpdatedObservable = bt2c::Observable<std::size_t>;
 
 public:
-    explicit TraceClsMixin() noexcept {};
+    explicit TraceClsMixin() noexcept { };
 
     /*
      * Sets the equivalent libbabeltrace2 class to `cls` (shared).

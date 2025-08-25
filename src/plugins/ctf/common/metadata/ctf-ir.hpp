@@ -654,8 +654,8 @@ public:
 protected:
     explicit Fc(const FcType type, typename UserMixinsT::Fc mixin, const unsigned int align,
                 OptAttrs&& attrs) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::Fc {std::move(mixin)}, _mType {type}, _mAlign {align}
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::Fc {std::move(mixin)},
+        _mType {type}, _mAlign {align}
     {
     }
 
@@ -1700,8 +1700,7 @@ class StrFc : public Fc<UserMixinsT>
 protected:
     explicit StrFc(const FcType type, typename UserMixinsT::Fc fcMixin, const StrEncoding encoding,
                    OptAttrs&& attrs) :
-        Fc<UserMixinsT> {type, std::move(fcMixin), 8, std::move(attrs)},
-        _mEncoding {encoding}
+        Fc<UserMixinsT> {type, std::move(fcMixin), 8, std::move(attrs)}, _mEncoding {encoding}
     {
     }
 
@@ -1799,8 +1798,8 @@ public:
 
     explicit FieldLoc(typename UserMixinsT::FieldLoc mixin, bt2s::optional<Scope> origin,
                       Items items) :
-        UserMixinsT::FieldLoc {std::move(mixin)},
-        _mOrigin {std::move(origin)}, _mItems {std::move(items)}
+        UserMixinsT::FieldLoc {std::move(mixin)}, _mOrigin {std::move(origin)},
+        _mItems {std::move(items)}
     {
     }
 
@@ -2855,9 +2854,8 @@ public:
     explicit VariantFcOpt(typename UserMixinsT::VariantFcOpt mixin, typename Fc<UserMixinsT>::UP fc,
                           IntRangeSetT selFieldRanges, bt2s::optional<std::string> name,
                           OptAttrs attrs = OptAttrs {}) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::VariantFcOpt(std::move(mixin)), _mName {std::move(name)}, _mFc {std::move(fc)},
-        _mSelFieldRanges {std::move(selFieldRanges)}
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::VariantFcOpt(std::move(mixin)),
+        _mName {std::move(name)}, _mFc {std::move(fc)}, _mSelFieldRanges {std::move(selFieldRanges)}
     {
         BT_ASSERT(_mFc);
     }
@@ -3696,12 +3694,11 @@ public:
                     bt2s::optional<unsigned long long> precision = bt2s::nullopt,
                     bt2s::optional<unsigned long long> accuracy = bt2s::nullopt,
                     OptAttrs attrs = OptAttrs {}) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::ClkCls {std::move(mixin)}, _mId {std::move(id)}, _mNs {std::move(ns)},
-        _mName {std::move(name)}, _mUid {std::move(uid)}, _mFreq {freq},
-        _mOffsetFromOrigin {offsetFromOrigin}, _mOrigin {std::move(origin)},
-        _mDescr {std::move(descr)}, _mPrecision {std::move(precision)},
-        _mAccuracy {std::move(accuracy)}
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::ClkCls {std::move(mixin)},
+        _mId {std::move(id)}, _mNs {std::move(ns)}, _mName {std::move(name)},
+        _mUid {std::move(uid)}, _mFreq {freq}, _mOffsetFromOrigin {offsetFromOrigin},
+        _mOrigin {std::move(origin)}, _mDescr {std::move(descr)},
+        _mPrecision {std::move(precision)}, _mAccuracy {std::move(accuracy)}
     {
         BT_ASSERT(_mFreq > 0);
         BT_ASSERT(_mOffsetFromOrigin.cycles() < _mFreq);
@@ -3855,10 +3852,9 @@ public:
                             typename StructFc<UserMixinsT>::UP specCtxFc = nullptr,
                             typename StructFc<UserMixinsT>::UP payloadFc = nullptr,
                             OptAttrs attrs = OptAttrs {}) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::EventRecordCls(std::move(mixin)), _mId {id}, _mNs {std::move(ns)},
-        _mName {std::move(name)}, _mUid {std::move(uid)}, _mSpecCtxFc {std::move(specCtxFc)},
-        _mPayloadFc {std::move(payloadFc)}
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::EventRecordCls(std::move(mixin)),
+        _mId {id}, _mNs {std::move(ns)}, _mName {std::move(name)}, _mUid {std::move(uid)},
+        _mSpecCtxFc {std::move(specCtxFc)}, _mPayloadFc {std::move(payloadFc)}
     {
     }
 
@@ -3999,10 +3995,9 @@ public:
                            typename StructFc<UserMixinsT>::UP commonEventRecordCtxFc = nullptr,
                            typename ClkCls<UserMixinsT>::SP defClkCls = nullptr,
                            OptAttrs attrs = OptAttrs {}) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::DataStreamCls(std::move(mixin)), _mId {id}, _mNs {std::move(ns)},
-        _mName {std::move(name)}, _mUid {std::move(uid)}, _mPktCtxFc {std::move(pktCtxFc)},
-        _mEventRecordHeaderFc {std::move(eventRecordHeaderFc)},
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::DataStreamCls(std::move(mixin)),
+        _mId {id}, _mNs {std::move(ns)}, _mName {std::move(name)}, _mUid {std::move(uid)},
+        _mPktCtxFc {std::move(pktCtxFc)}, _mEventRecordHeaderFc {std::move(eventRecordHeaderFc)},
         _mCommonEventRecordCtxFc {std::move(commonEventRecordCtxFc)},
         _mDefClkCls {std::move(defClkCls)}
     {
@@ -4247,9 +4242,9 @@ public:
                       bt2::ConstMapValue::Shared env = bt2::ConstMapValue::Shared {},
                       typename Fc<UserMixinsT>::UP pktHeaderFc = nullptr,
                       OptAttrs attrs = OptAttrs {}) :
-        internal::WithAttrsMixin {std::move(attrs)},
-        UserMixinsT::TraceCls {std::move(mixin)}, _mNs {std::move(ns)}, _mName {std::move(name)},
-        _mUid {std::move(uid)}, _mEnv {std::move(env)}, _mPktHeaderFc {std::move(pktHeaderFc)}
+        internal::WithAttrsMixin {std::move(attrs)}, UserMixinsT::TraceCls {std::move(mixin)},
+        _mNs {std::move(ns)}, _mName {std::move(name)}, _mUid {std::move(uid)},
+        _mEnv {std::move(env)}, _mPktHeaderFc {std::move(pktHeaderFc)}
     {
         BT_ASSERT(!_mPktHeaderFc || _mPktHeaderFc->isStruct());
     }

@@ -26,8 +26,7 @@ class MetadataStreamPacketInfo final
 public:
     explicit MetadataStreamPacketInfo(const ByteOrder byteOrder, const unsigned int major,
                                       const unsigned int minor, const bt2c::Uuid& uuid) noexcept :
-        _mByteOrder {byteOrder},
-        _mMajor {major}, _mMinor {minor}, _mUuid {uuid}
+        _mByteOrder {byteOrder}, _mMajor {major}, _mMinor {minor}, _mUuid {uuid}
     {
     }
 

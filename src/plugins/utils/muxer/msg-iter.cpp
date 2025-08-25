@@ -437,8 +437,7 @@ void MsgIter::_validateMsgClkCls(const bt2::ConstMessage msg)
 
 MsgIter::_HeapComparator::_HeapComparator(const bt2c::Logger& logger,
                                           const std::uint64_t graphMipVersion) :
-    _mLogger {logger},
-    _mMsgComparator {graphMipVersion}
+    _mLogger {logger}, _mMsgComparator {graphMipVersion}
 {
 }
 
