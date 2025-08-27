@@ -32,19 +32,25 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare environment script
+        run: |
+          echo '#!/bin/bash\necho "Preparing environment\n"' > ./prepare-env.sh
+          chmod +x ./prepare-env.sh
       - name: Install dependencies
         if: matrix.os == 'macos-latest'
         run: |
           brew install swig libtool bison automake autoconf flex glib pkgconf
-          export PATH="$(brew --prefix bison)/bin:$PATH"
-          export MACOSX_DEPLOYMENT_TARGET=15.0
+          echo 'export PATH="$(brew --prefix bison)/bin:$PATH"' >> ./prepare-env.sh
+          echo 'export MACOSX_DEPLOYMENT_TARGET=14.0' >> ./prepare-env.sh
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - name: Install pipx
         run: python3 -m pip install pipx
       - name: Build wheels
-        run: python3 -m pipx run cibuildwheel
+        run: |
+          source ./prepare-env.sh
+          python3 -m pipx run cibuildwheel
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
