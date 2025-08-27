@@ -14,12 +14,15 @@ jobs:
     # Use container for a newer version of clang-format
     container: debian:trixie
     steps:
-      - uses: actions/checkout@v4
       - run: |
           apt-get -qqy update
           apt-get -qqy install pre-commit git clang-format
+      - uses: actions/checkout@v4
       - name: Run pre-commit
-        run: pre-commit run --show-diff-on-failure --all-files
+        run: |
+          git config --global --add safe.directory $(pwd)
+          git status
+          pre-commit run --show-diff-on-failure --all-files
 
   cibuildwheel:
     runs-on: ${{ matrix.os }}
