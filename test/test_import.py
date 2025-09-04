@@ -9,7 +9,7 @@ import pytest
 def test_import():
     import bt2
 
-    assert bt2.__version__ == "2.2.0rc1"
+    assert bt2.__version__ == "0.0.1"
 
     with pytest.raises(RuntimeError) as exc:
         bt2.TraceCollectionMessageIterator("/this/path/does/not/exist")

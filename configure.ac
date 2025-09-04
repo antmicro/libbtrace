@@ -5,10 +5,10 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 
 # Project version information
-m4_define([bt_version_major], [2])
-m4_define([bt_version_minor], [2])
-m4_define([bt_version_patch], [0])
-m4_define([bt_version_dev_stage], [rc1])
+m4_define([bt_version_major], [0])
+m4_define([bt_version_minor], [0])
+m4_define([bt_version_patch], [1])
+m4_define([bt_version_dev_stage], [])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
 m4_define([bt_version_name], [[Codename TBD]])
 m4_define([bt_version_description], [[Description TBD]])
