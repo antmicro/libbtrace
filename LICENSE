@@ -81,49 +81,61 @@ individual files.
 The binary distribution of babeltrace2 bundles the following software:
 
 Name: GMP
+Source: https://gmplib.org/
 Files: bt2.libs/libgmp*.so.*
 License: LICENSES/LGPL-3.0-only.txt
 
 Name: nettle
+Source: http://www.lysator.liu.se/~nisse/nettle/
 Files: bt2.libs/libhogweed*.so.*, bt2.libs/libnettle*.so.*
 License: LICENSES/LGPL-3.0-only.txt
 
 Name: libidn2
+Source: https://www.gnu.org/software/libidn/
 Files: bt2.libs/libidn2*.so.*
 License: LICENSES/LGPL-3.0-only.txt
 
 Name: libintl
+Source: https://www.gnu.org/software/libc/
 Files: bt2/.dylibs/libintl*.dylib
 License: LICENSES/LGPL-3.0-only.txt
 
 Name: libgnutls
+Source: https://www.gnutls.org/
 Files: bt2.libs/libgnutls*.so.*
 License: LICENSES/LGPL-2.1-only.txt
 
 Name: libtasn1
+Source: https://www.gnu.org/software/libtasn1/
 Files: bt2.libs/libtasn1*.so.*
 License: LICENSES/LGPL-2.1-only.txt
 
 Name: libunistring
+Source: https://www.gnu.org/software/libunistring/
 Files: bt2.libs/libunistring*.so.*
 License: LICENSES/LGPL-2.1-only.txt
 
 Name: libglib
+Source: https://gitlab.gnome.org/GNOME/glib
 Files: bt2.libs/libglib*.so.*, bt2/.dylibs/libglib*.dylib
 License: LICENSES/LGPL-2.1-only.txt
 
 Name: libgmodule
+Source: https://gitlab.gnome.org/GNOME/glib
 Files: bt2.libs/libgmodule*.so.*, bt2/.dylibs/libgmodule*.dylib
 License: LICENSES/LGPL-2.1-only.txt
 
 Name: libpcre2
+Source: https://github.com/PCRE2Project/pcre2
 Files: bt2.libs/libpcre2*.so.*, bt2/.dylibs/libpcre2*.dylib
 License: LICENSES/pcre2.txt
 
 Name: p11-kit
+Source: https://github.com/p11-glue/p11-kit
 Files: bt2.libs/libp11-kit*.so.*
 License: LICENSES/p11-kit.txt
 
 Name: libffi
+Source: https://github.com/libffi/libffi
 Files: bt2.libs/libffi*.so.*
 License: LICENSES/libffi.txt
