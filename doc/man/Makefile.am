@@ -147,5 +147,5 @@ dist-hook:
 endif # !ENABLE_MAN_PAGES
 
 # always distribute the source files
-EXTRA_DIST = README.adoc $(MAN_TXT) $(COMMON_TXT) $(XSL_SRC_FILE) \
+EXTRA_DIST = README.md $(MAN_TXT) $(COMMON_TXT) $(XSL_SRC_FILE) \
 	$(ASCIIDOC_CONF) $(ASCIIDOC_ATTRS_CONF).in

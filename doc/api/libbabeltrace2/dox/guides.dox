@@ -64,7 +64,7 @@ as the minimal logging level:
     \bt_name tarball</a> and extract it.
 
     See the
-    <a href="https://github.com/efficios/babeltrace/blob/stable-\bt_version_min_maj/README.adoc">README</a>
+    <a href="https://github.com/efficios/babeltrace/blob/stable-\bt_version_min_maj/README.md">README</a>
     of the project for build-time requirements and detailed build
     instructions.
   <li>

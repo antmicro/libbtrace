@@ -31,7 +31,7 @@ at configuration time:
    $ ./configure --enable-python-bindings --enable-python-plugins
 
 See the project's
-:bt2link:`README <https://github.com/efficios/babeltrace/blob/stable-@ver@/README.adoc>`
+:bt2link:`README <https://github.com/efficios/babeltrace/blob/stable-@ver@/README.md>`
 for build-time requirements and detailed build instructions.
 
 .. note::

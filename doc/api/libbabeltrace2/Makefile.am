@@ -65,7 +65,7 @@ MOSTLYCLEANFILES = $(DX_CLEANFILES)
 EXTRA_DIST = \
 	Doxyfile.in \
 	DoxygenLayout.xml \
-	README.adoc \
+	README.md \
 	style.css \
 	dox \
 	examples \

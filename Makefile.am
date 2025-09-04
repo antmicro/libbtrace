@@ -11,7 +11,7 @@ SUBDIRS = \
 
 dist_doc_DATA = \
 	LICENSE \
-	README.adoc
+	README.md
 
 EXTRA_DIST = \
 	.reuse/dep5 \
