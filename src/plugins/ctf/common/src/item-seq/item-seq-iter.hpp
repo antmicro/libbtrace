@@ -3613,7 +3613,7 @@ private:
             this->_updateDefClkVal(val, len);
 
             /* Update for user */
-            _mItems.defClkVal._mCycles = _mDefClkVal;
+            _mItems.defClkVal._mCycles = _mDefClkValPerStream[_mStreamClassID];
 
             /* Next: set default clock value item */
             this->_state(_State::SetDefClkValItem);
@@ -4252,8 +4252,9 @@ private:
      */
     std::vector<unsigned long long> _mSavedKeyVals;
 
-    /* Current default clock value, if any */
-    unsigned long long _mDefClkVal = 0;
+    unsigned long long _mDefClkValPerStream[16] = {0};
+
+    unsigned long long _mStreamClassID = 0;
 
     /* Logging configuration */
     bt2c::Logger _mLogger;

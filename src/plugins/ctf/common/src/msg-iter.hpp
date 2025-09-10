@@ -598,6 +598,10 @@ private:
 
     /* Helper to log items */
     LoggingItemVisitor _mLoggingVisitor;
+
+    bool _mShouldWork;
+
+    unsigned long long _mCurStreamClassId;
 };
 
 } /* namespace src */

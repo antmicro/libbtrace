@@ -68,29 +68,29 @@ void ItemSeqIter::_updateDefClkVal(const unsigned long long val, const bt2c::Dat
      * directly.
      */
     if (len == 64_bits) {
-        _mDefClkVal = val;
+        _mDefClkValPerStream[_mStreamClassID] = val;
         return;
     }
 
     const auto newValMask = (1ULL << *len) - 1;
 
     {
-        const auto curValMasked = _mDefClkVal & newValMask;
+        const auto curValMasked = _mDefClkValPerStream[_mStreamClassID] & newValMask;
 
         if (val < curValMasked) {
             /*
              * It looks like a wrap occurred on the number of bits of the
              * new value. Assume that the clock value wrapped only once.
              */
-            _mDefClkVal += newValMask + 1;
+            _mDefClkValPerStream[_mStreamClassID] += newValMask + 1;
         }
     }
 
     /* Clear the low bits of the current default clock value */
-    _mDefClkVal &= ~newValMask;
+    _mDefClkValPerStream[_mStreamClassID] &= ~newValMask;
 
     /* Set the low bits of the current default clock value */
-    _mDefClkVal |= val;
+    _mDefClkValPerStream[_mStreamClassID] |= val;
 }
 
 void ItemSeqIter::_resetForNewPkt()
@@ -98,7 +98,6 @@ void ItemSeqIter::_resetForNewPkt()
     _mCurClsId = bt2s::nullopt;
     _mLastFixedLenBitArrayFieldByteOrder = bt2s::nullopt;
     _mStack.clear();
-    _mDefClkVal = 0;
 
     /* Reset decoding head to the beginning of the new packet */
     _mHeadOffsetInCurPkt = 0_bits;
@@ -494,6 +493,7 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleSetDataStreamInfoItemSta
     if (_mCurClsId) {
         _mItems.dataStreamInfo._mCls = (*_mTraceCls)[*_mCurClsId];
 
+        _mStreamClassID = *_mCurClsId;
         if (!_mItems.dataStreamInfo._mCls) {
             CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
                 "no data stream class exists with ID {}", *_mCurClsId);
@@ -566,7 +566,7 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleSetPktInfoItemState()
 
     /* Update for user */
     if (_mItems.dataStreamInfo._mCls && _mItems.dataStreamInfo._mCls->defClkCls()) {
-        _mItems.pktInfo._mBeginDefClkVal = _mDefClkVal;
+        _mItems.pktInfo._mBeginDefClkVal = _mDefClkValPerStream[_mStreamClassID];
     }
 
     this->_updateForUser(_mItems.pktInfo);
@@ -607,7 +607,7 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleSetEventRecordInfoItemSt
 
     /* Update for user */
     if (dataStreamCls.defClkCls()) {
-        _mItems.eventRecordInfo._mDefClkVal = _mDefClkVal;
+        _mItems.eventRecordInfo._mDefClkVal = _mDefClkValPerStream[_mStreamClassID];
     }
 
     this->_updateForUser(_mItems.eventRecordInfo);

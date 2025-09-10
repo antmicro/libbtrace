@@ -31,7 +31,7 @@ MsgIter::MsgIter(const bt2::SelfMessageIterator selfMsgIter, const ctf::src::Tra
     _mLogger {parentLogger, "PLUGIN/CTF/MSG-ITER"}, _mSelfMsgIter {selfMsgIter}, _mStream {stream},
     _mExpectedMetadataStreamUuid {std::move(expectedMetadataStreamUuid)}, _mQuirks {quirks},
     _mItemSeqIter {std::move(medium), traceCls, _mLogger}, _mUnicodeConv {_mLogger},
-    _mLoggingVisitor {"Handling item", _mLogger}
+    _mLoggingVisitor {"Handling item", _mLogger}, _mShouldWork {true}, _mCurStreamClassId {0}
 {
     BT_CPPLOGD("Created CTF plugin message iterator: "
                "addr={}, trace-cls-addr={}, log-level={}",
@@ -62,9 +62,18 @@ bt2::ConstMessage::Shared MsgIter::next()
              * sequence iterator.
              */
             if (const auto item = _mItemSeqIter.next()) {
+                if (item->type() == Item::Type::PktBegin) {
+                    _mShouldWork = true;
+                }
+
                 /* Handle item if needed */
-                if (!_mSkipItemsUntilScopeEndItem || item->isScopeEnd()) {
+                if (_mShouldWork && (!_mSkipItemsUntilScopeEndItem || item->isScopeEnd())) {
                     this->_handleItem(*item);
+
+                    if (item->type() == Item::Type::DataStreamInfo &&
+                        (_mStream.cls().id() != _mCurStreamClassId)) {
+                        _mShouldWork = false;
+                    }
 
                     if (auto msg = this->_releaseNextMsg()) {
                         return msg;
@@ -395,12 +404,10 @@ void MsgIter::_handleItem(const DataStreamInfoItem& item)
      */
     BT_ASSERT_DBG(item.cls());
 
+    _mCurStreamClassId = item.cls()->id();
+
     if (item.cls()->id() != _mStream.cls().id()) {
-        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
-            bt2c::Error,
-            "Two contiguous packets belong to data streams having different classes: "
-            "expected-data-stream-class-class-id={}, data-stream-class-id={}",
-            item.cls()->id(), _mStream.cls().id());
+        return;
     }
 
     if (item.id() && *item.id() != _mStream.id()) {

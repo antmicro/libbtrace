@@ -384,6 +384,25 @@ static int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace, const
             ctf_fs_trace, *sc, stream_instance_id ? *stream_instance_id : UINT64_C(-1),
             std::move(*index)));
         ctf_fs_trace->ds_file_groups.back()->add_ds_file_info(std::move(ds_file_info));
+
+        for (const auto& streamCls : ctf_fs_trace->cls()->dataStreamClasses()) {
+            if (streamCls.get()->id() == sc->id()) {
+                continue;
+            }
+            auto extra_ds_file_info = bt2s::make_unique<ctf_fs_ds_file_info>(path, logger);
+
+            auto extra_index = ctf_fs_ds_file_build_index(*extra_ds_file_info, traceCls);
+            if (!index) {
+                BT_CPPLOGE_APPEND_CAUSE_SPEC(logger, "Failed to index CTF stream file \'{}\'",
+                                             path);
+                return -1;
+            }
+
+            ctf_fs_trace->ds_file_groups.emplace_back(bt2s::make_unique<ctf_fs_ds_file_group>(
+                ctf_fs_trace, *streamCls.get(), UINT64_C(-1), std::move(*extra_index)));
+            ctf_fs_trace->ds_file_groups.back()->add_ds_file_info(std::move(extra_ds_file_info));
+        }
+
         return 0;
     }
 
