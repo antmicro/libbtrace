@@ -24,11 +24,11 @@ jobs:
           pre-commit run --show-diff-on-failure --all-files
 
   cibuildwheel:
-    runs-on: ${{ matrix.os }}
-    name: Build wheels (${{ matrix.os }})
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [[ubuntu-latest], [macos-14,  14.0], [macos-15, 15.0]]
+    runs-on: ${{ matrix.os[0] }}
+    name: Build wheels (${{ matrix.os[0] }})
     steps:
       - uses: actions/checkout@v4
       - name: Prepare environment script
@@ -36,11 +36,11 @@ jobs:
           echo '#!/bin/bash\necho "Preparing environment\n"' > ./prepare-env.sh
           chmod +x ./prepare-env.sh
       - name: Install dependencies
-        if: matrix.os == 'macos-latest'
+        if:  ${{ startsWith(matrix.os[0], 'macos-') }}
         run: |
           brew install swig libtool bison automake autoconf flex glib pkgconf
           echo 'export PATH="$(brew --prefix bison)/bin:$PATH"' >> ./prepare-env.sh
-          echo 'export MACOSX_DEPLOYMENT_TARGET=14.0' >> ./prepare-env.sh
+          echo 'export MACOSX_DEPLOYMENT_TARGET=${{ matrix.os[1] }}' >> ./prepare-env.sh
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -53,7 +53,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: wheels-${{ matrix.os[0] }}
           path: wheelhouse/*.whl
 
   publish-python-packages:
