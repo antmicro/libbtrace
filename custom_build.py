@@ -38,6 +38,7 @@ def bt_build(src_dir, build_dir):
             check=True,
         )
         subprocess.run("make -j`nproc`", shell=True, check=True)
+        subprocess.run("make install-strip", shell=True, check=True)
 
 
 def bt_patch_lib(path):
@@ -71,20 +72,26 @@ def bt_get_plugin_paths(build_dir):
     paths: list[Path] = []
     for plugin in ["ctf", "text", "utils"]:
         paths.append(
-            build_dir / "./src/plugins" / plugin / ".libs" / f"babeltrace-plugin-{plugin}.so"
+            build_dir / "lib" / "babeltrace2" / "plugins" / f"babeltrace-plugin-{plugin}.so"
         )
     return paths
 
 
 def bt_get_babeltrace2_path(build_dir):
     if sys.platform == "darwin":
-        return build_dir / "src/lib/.libs/libbabeltrace2.0.dylib"
+        return build_dir / "lib" / "libbabeltrace2.0.dylib"
     else:
-        return build_dir / "src/lib/.libs/libbabeltrace2.so"
+        return build_dir / "lib" / "libbabeltrace2.so"
 
 
 def bt_get_bindings_paths(build_dir):
-    bindings_dir = build_dir / "./src/bindings/python/bt2/build/build_lib/bt2"
+    bindings_dir = (
+        build_dir
+        / "lib"
+        / f"python{sys.version_info.major}.{sys.version_info.minor}"
+        / "site-packages"
+        / "bt2"
+    )
     return bindings_dir.iterdir()
 
 
