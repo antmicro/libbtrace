@@ -12,7 +12,7 @@ name = "bt2"
 version = "0.0.1"
 description = "libbtrace - Parser for CTF traces based on parts of Babeltrace 2"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 license = "MIT"
 license-files = [
   "LICENSES/*.txt",
