@@ -3,18 +3,19 @@
 # Copyright (C) 2017 Francis Deslauriers <francis.deslauriers@efficios.com>
 # Copyright (C) 2020 Jérémie Galarneau <jeremie.galarneau@efficios.com>
 
-import sys
 import os
 import shutil
 import subprocess
+import sys
+from pathlib import Path
 
 # Distutils was removed in Python 3.12, use setuptools as an alternative.
 if sys.version_info >= (3, 12):
-    from setuptools import setup, Extension
+    from setuptools import Extension, setup
     from setuptools.command.build_ext import build_ext
 else:
-    from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
+    from distutils.core import Extension, setup
 
 
 # Starting with Debian's Python 3.10, the default install scheme is
@@ -183,6 +184,20 @@ class custom_build_ext(build_ext):
         )
 
         super().build_extensions()
+
+        bt2_lib = Path(self.build_lib) / "bt2"
+        bt2_native_so = next(bt2_lib.glob("_native_bt.*"), None)
+        if bt2_native_so:
+            strip_args = "-xS" if sys.platform == "darwin" else "-s"
+            res = subprocess.run(
+                f"strip {strip_args} {str(bt2_native_so.absolute())}",
+                shell=True,
+                capture_output=True,
+            )
+            if res.returncode != 0:
+                print("Cannot strip _native_bt lib, error:", res.stderr)
+        else:
+            print("Cannot find _native_bt shared object")
 
 
 def main():
