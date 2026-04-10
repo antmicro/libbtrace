@@ -737,6 +737,8 @@ plugins_ctf_babeltrace_plugin_ctf_la_SOURCES = \
 	plugins/ctf/fs-src/metadata.hpp \
 	plugins/ctf/fs-src/query.cpp \
 	plugins/ctf/fs-src/query.hpp \
+	plugins/ctf/live-src/live-src.cpp \
+	plugins/ctf/live-src/live-src.hpp \
 	plugins/ctf/lttng-live/data-stream.cpp \
 	plugins/ctf/lttng-live/data-stream.hpp \
 	plugins/ctf/lttng-live/lttng-live.cpp \

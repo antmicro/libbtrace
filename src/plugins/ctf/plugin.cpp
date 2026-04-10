@@ -10,6 +10,7 @@
 
 #include "fs-sink/fs-sink.hpp"
 #include "fs-src/fs.hpp"
+#include "live-src/live-src.hpp"
 #include "lttng-live/lttng-live.hpp"
 
 #ifndef BT_BUILT_IN_PLUGINS
@@ -65,3 +66,19 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_WITH_I
     auto, lttng_live, lttng_live_msg_iter_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD_WITH_ID(
     auto, lttng_live, lttng_live_msg_iter_finalize);
+
+/* ctf.live source */
+BT_PLUGIN_SOURCE_COMPONENT_CLASS(live, ctf_live_iterator_next);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(live, "Read CTF traces from [TODO].");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_HELP(live, "TODO DOC");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(
+    live, ctf_live_get_supported_mip_versions);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(live, ctf_live_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD(live, ctf_live_query);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(live, ctf_live_finalize);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD(live,
+                                                                          ctf_live_iterator_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD(live,
+                                                                        ctf_live_iterator_finalize);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHODS(
+    live, ctf_live_iterator_seek_beginning, NULL);
