@@ -8,7 +8,104 @@
 #ifndef BABELTRACE_PLUGINS_CTF_LIVE_SRC_LIVE_SRC_HPP
 #define BABELTRACE_PLUGINS_CTF_LIVE_SRC_LIVE_SRC_HPP
 
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+
+#include <sys/types.h>
+
 #include <babeltrace2/babeltrace.h>
+
+#include "cpp-common/bt2c/aliases.hpp"
+#include "cpp-common/bt2c/logging.hpp"
+
+#include "../common/src/metadata/metadata-stream-parser-utils.hpp"
+#include "../common/src/msg-iter.hpp"
+#include "plugins/ctf/common/src/item-seq/medium.hpp"
+
+template <typename T, void (*put_ref_func)(const T *)>
+struct bt_object_put_reffer
+{
+    void operator()(T *obj)
+    {
+        if (obj) {
+            put_ref_func(obj);
+        }
+    }
+};
+
+#define BT_OBJ_REF(name)                                                                           \
+    using name##_put_reffer = bt_object_put_reffer<name, name##_put_ref>;                          \
+    using name##_ref = std::unique_ptr<name, name##_put_reffer>;
+
+BT_OBJ_REF(bt_clock_class)
+BT_OBJ_REF(bt_trace_class)
+BT_OBJ_REF(bt_stream_class)
+BT_OBJ_REF(bt_event_class)
+BT_OBJ_REF(bt_field_class)
+BT_OBJ_REF(bt_trace)
+BT_OBJ_REF(bt_stream)
+BT_OBJ_REF(bt_message)
+
+struct ctf_live_trace
+{
+    ctf::src::ClkClsCfg clkClsCfg;
+    bt2::OptionalBorrowedObject<bt2::SelfComponent> selfComp;
+    bt2s::optional<ctf::src::MetadataStreamParser::ParseRet> parseRet;
+    bt2c::Logger logger;
+    bt2::Trace::Shared trace;
+
+    explicit ctf_live_trace(const ctf::src::ClkClsCfg& clkClsCfg,
+                            const bt2::OptionalBorrowedObject<bt2::SelfComponent> selfComp,
+                            const bt2c::Logger& parentLogger) :
+        logger {parentLogger, "PLUGIN/SRC.CTF.FS/TRACE"}, clkClsCfg {clkClsCfg}, selfComp {selfComp}
+    {
+    }
+
+    const ctf::src::TraceCls *cls() const
+    {
+        BT_ASSERT(parseRet);
+        BT_ASSERT(parseRet->traceCls);
+        return parseRet->traceCls.get();
+    }
+
+    void parseMetadata(const bt2c::ConstBytes buffer)
+    {
+        parseRet = ctf::src::parseMetadataStream(selfComp, clkClsCfg, buffer, logger);
+    }
+};
+
+struct ctf_live_component
+{
+    std::unique_ptr<ctf_live_trace> trace;
+};
+
+class ctf_live_medium;
+
+struct ctf_live_iterator
+{
+    ctf_live_component *comp;
+    std::unique_ptr<ctf::src::MsgIter> msg_iter;
+    bt2::Stream::Shared stream;
+    /*
+     * Saved error.  If we hit an error in the _next method, but have some
+     * messages ready to return, we save the error here and return it on
+     * the next _next call.
+     */
+    bt_message_iterator_class_next_method_status next_saved_status =
+        BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
+    const bt_error *next_saved_error = nullptr;
+};
+
+class ctf_live_medium : public ctf::src::Medium
+{
+public:
+    constexpr ctf_live_medium() = default;
+
+    ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
+};
 
 bt_message_iterator_class_next_method_status
 ctf_live_iterator_next(bt_self_message_iterator *iterator, bt_message_array_const msgs,
