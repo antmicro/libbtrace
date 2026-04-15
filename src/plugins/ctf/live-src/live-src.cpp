@@ -32,15 +32,26 @@ static bt2c::Logger s_logger {"SOURCE.CTF.LIVE", "SOURCE.CTF.LIVE", bt2c::Logger
 
 ctf::src::Buf ctf_live_medium::buf(bt2c::DataLen offset, bt2c::DataLen minSize)
 {
-    static auto file = bt2c::dataFromFile("trace.ctf", s_logger, true);
+    if (dummy_file.size() == 0) {
+        dummy_file = bt2c::dataFromFile("trace.ctf", s_logger, true);
+    }
 
     /* The medium only gets asked about whole byte offsets and min sizes. */
     BT_ASSERT_DBG(offset.extraBitCount() == 0);
     BT_ASSERT_DBG(minSize.extraBitCount() == 0);
-    if (offset.bytes() + minSize.bytes() >= file.size()) {
+    if (offset.bytes() + minSize.bytes() >= dummy_file.size()) {
         return ctf::src::Buf();
     }
-    return ctf::src::Buf(file.data() + offset.bytes(), minSize);
+
+    std::printf("SOURCE.CTF.LIVE::buf() CALED! offset=%d minSize=%d\n", offset.bytes(),
+                minSize.bytes());
+    return ctf::src::Buf(dummy_file.data() + offset.bytes(), minSize);
+}
+
+ctf_live_component *priv(bt_self_component_source *component)
+{
+    return static_cast<ctf_live_component *>(
+        bt_self_component_get_data(bt_self_component_source_as_self_component(component)));
 }
 
 static std::unique_ptr<ctf_live_trace>
@@ -97,15 +108,19 @@ ctf_live_init(bt_self_component_source *self_comp_src,
     bt_self_component_set_data(bt_self_component_source_as_self_component(self_comp_src), comp);
 
     //  Parse the metadata file
-    comp->trace = ctf_live_trace_create(".", "tracexd", ctf::src::ClkClsCfg {},
+    comp->trace = ctf_live_trace_create(".", "trace", ctf::src::ClkClsCfg {},
                                         static_cast<bt2::SelfComponent>(bt2::wrap(self_comp_src)));
     size_t idx = 0;
     //  Create an output port for each of the streams found in the metadata
     //  file.
     for (const auto& streamCls : comp->trace->cls()->dataStreamClasses()) {
         auto *port = new ctf_live_port_output;
+        if (!port) {
+            return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+        }
         port->comp = comp;
-        port->name = "out" + std::to_string(idx);
+        port->stream_id = idx++;
+        port->name = std::string {"out"} + std::to_string(port->stream_id);
         port->data_stream_cls = streamCls.get();
         bt_self_component_source_add_output_port(self_comp_src, port->name.data(), port, nullptr);
     }
@@ -130,11 +145,11 @@ ctf_live_query(bt_self_component_class_source *comp_class_src,
 
 void ctf_live_finalize(bt_self_component_source *component)
 {
-    auto *comp = static_cast<ctf_live_component *>(
-        bt_self_component_get_data(bt_self_component_source_as_self_component(component)));
+    auto *comp = priv(component);
     if (comp) {
         delete comp;
     }
+    // TODO free/destroy ports
 }
 
 bt_message_iterator_class_initialize_method_status
@@ -147,13 +162,18 @@ ctf_live_iterator_init(bt_self_message_iterator *self_msg_iter,
     auto *self_component_port = bt_self_component_port_output_as_self_component_port(self_port);
     auto *self_component = bt_self_component_port_borrow_component(self_component_port);
 
+    auto *port = static_cast<ctf_live_port_output *>(bt_self_component_port_get_data(
+        bt_self_component_port_output_as_self_component_port(self_port)));
     auto *it = new ctf_live_iterator;
     if (!it) {
         return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
     }
     bt_self_message_iterator_set_data(self_msg_iter, it);
 
+    const auto streamCls = *port->data_stream_cls->libCls();
+
     it->comp = static_cast<ctf_live_component *>(bt_self_component_get_data(self_component));
+    it->stream = streamCls.instantiate(*it->comp->trace->trace, port->stream_id);
     auto medium = bt2s::make_unique<ctf_live_medium>();
     it->msg_iter = bt2s::make_unique<ctf::src::MsgIter>(
         bt2::wrap(self_msg_iter), *it->comp->trace->cls(), it->comp->trace->parseRet->uuid,

@@ -102,15 +102,18 @@ struct ctf_live_iterator
 class ctf_live_medium : public ctf::src::Medium
 {
 public:
-    constexpr ctf_live_medium() = default;
+    ctf_live_medium() = default;
 
     ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
+private:
+    std::vector<uint8_t> dummy_file;
 };
 
 struct ctf_live_port_output
 {
     ctf_live_component *comp;
     std::string name;
+    uint8_t stream_id;
     const ctf::src::DataStreamCls *data_stream_cls;
 };
 
