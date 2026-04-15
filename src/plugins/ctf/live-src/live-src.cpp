@@ -6,6 +6,7 @@
  *
  */
 #include <cstdio>
+#include <string>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -94,10 +95,20 @@ ctf_live_init(bt_self_component_source *self_comp_src,
         return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
     }
     bt_self_component_set_data(bt_self_component_source_as_self_component(self_comp_src), comp);
-    bt_self_component_source_add_output_port(self_comp_src, "out", comp, nullptr);
 
+    //  Parse the metadata file
     comp->trace = ctf_live_trace_create(".", "tracexd", ctf::src::ClkClsCfg {},
                                         static_cast<bt2::SelfComponent>(bt2::wrap(self_comp_src)));
+    size_t idx = 0;
+    //  Create an output port for each of the streams found in the metadata
+    //  file.
+    for (const auto& streamCls : comp->trace->cls()->dataStreamClasses()) {
+        auto *port = new ctf_live_port_output;
+        port->comp = comp;
+        port->name = "out" + std::to_string(idx);
+        port->data_stream_cls = streamCls.get();
+        bt_self_component_source_add_output_port(self_comp_src, port->name.data(), port, nullptr);
+    }
 
     return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
@@ -147,9 +158,6 @@ ctf_live_iterator_init(bt_self_message_iterator *self_msg_iter,
     it->msg_iter = bt2s::make_unique<ctf::src::MsgIter>(
         bt2::wrap(self_msg_iter), *it->comp->trace->cls(), it->comp->trace->parseRet->uuid,
         *it->stream, std::move(medium), ctf::src::MsgIterQuirks {}, s_logger);
-    const auto props = readPktProps(*it->comp->trace->cls(), bt2s::make_unique<ctf_live_medium>(),
-                                    0_bytes, s_logger);
-    const auto sc = props.dataStreamCls;
 
     return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }

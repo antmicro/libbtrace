@@ -107,6 +107,13 @@ public:
     ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
 };
 
+struct ctf_live_port_output
+{
+    ctf_live_component *comp;
+    std::string name;
+    const ctf::src::DataStreamCls *data_stream_cls;
+};
+
 bt_message_iterator_class_next_method_status
 ctf_live_iterator_next(bt_self_message_iterator *iterator, bt_message_array_const msgs,
                        uint64_t capacity, uint64_t *count);
