@@ -69,8 +69,9 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD_WITH_ID(
 
 /* ctf.live source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(live, ctf_live_iterator_next);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(live, "Read CTF traces from [TODO].");
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_HELP(live, "TODO DOC");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(live, "Read CTF traces from socket.");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_HELP(live,
+                                      "Spawn socket server listening for incoming CTF traces");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(
     live, ctf_live_get_supported_mip_versions);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(live, ctf_live_init);

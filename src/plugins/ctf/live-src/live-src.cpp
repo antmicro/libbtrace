@@ -13,6 +13,7 @@
 #include "common/assert.h"
 #include "cpp-common/bt2/wrap.hpp"
 #include "cpp-common/bt2c/data-len.hpp"
+#include "cpp-common/bt2c/exc.hpp"
 #include "cpp-common/bt2c/file-utils.hpp"
 #include "cpp-common/bt2c/logging.hpp"
 #include "cpp-common/vendor/fmt/format.h"
@@ -40,11 +41,11 @@ ctf::src::Buf ctf_live_medium::buf(bt2c::DataLen offset, bt2c::DataLen minSize)
     BT_ASSERT_DBG(offset.extraBitCount() == 0);
     BT_ASSERT_DBG(minSize.extraBitCount() == 0);
     if (offset.bytes() + minSize.bytes() >= dummy_file.size()) {
-        return ctf::src::Buf();
+        throw bt2c::TryAgain();
     }
 
-    std::printf("SOURCE.CTF.LIVE::buf() CALED! offset=%d minSize=%d\n", offset.bytes(),
-                minSize.bytes());
+    // std::fprintf(stderr, "SOURCE.CTF.LIVE::buf() CALED! offset=%d minSize=%d\n", offset.bytes(),
+    //              minSize.bytes());
     return ctf::src::Buf(dummy_file.data() + offset.bytes(), minSize);
 }
 
@@ -191,6 +192,8 @@ ctf_live_iterator_next(bt_self_message_iterator *self_msg_iter, bt_message_array
     bt_message_iterator_class_next_method_status status =
         BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
     uint64_t i = 0;
+
+    std::fprintf(stderr, "ctf_live_iterator=%p\n", it);
 
     do {
         try {
