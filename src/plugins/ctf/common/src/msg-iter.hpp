@@ -510,7 +510,7 @@ private:
     struct
     {
         std::array<bt2::ConstMessage::Shared, 3> array;
-        std::size_t len;
+        std::size_t len {0};
     } _mMsgQueue;
 
     /* Stack */
