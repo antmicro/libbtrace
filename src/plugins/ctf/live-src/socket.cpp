@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 
 #include "cpp-common/bt2/exc.hpp"
+#include "cpp-common/bt2c/exc.hpp"
 #include "cpp-common/bt2c/logging.hpp"
 
 #include "socket.hpp"
@@ -40,6 +41,13 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
 
 CtfLiveSocketServer::~CtfLiveSocketServer()
 {
+    if (_mClientFd > 0) {
+        shutdown(_mClientFd, SHUT_RDWR);
+        close(_mClientFd);
+    }
+    if (_mSocketFd > 0) {
+        close(_mSocketFd);
+    }
     if (_mSocketThread.joinable()) {
         _mSocketThread.join();
     }
@@ -52,27 +60,41 @@ void CtfLiveSocketServer::_socketServerLoop()
         socklen_t client_addr_size = sizeof(client_addr);
 
         BT_CPPLOGD("Awaiting client connection");
-        const int client_fd =
+        _mClientFd =
             accept(_mSocketFd, reinterpret_cast<sockaddr *>(&client_addr), &client_addr_size);
-        if (client_fd < 0) {
-            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "accept() failed: ret={}", client_fd);
+        if (_mClientFd < 0) {
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "accept() failed: ret={}", _mClientFd);
         }
 
-        BT_CPPLOGD("Connected to client");
-        while (true) {
-            const auto n = recv(client_fd, _mReadBuf.data(), 1, 0);
-            if (n == -1) {
-                BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "recv() failed: ret={}", errno);
-            }
-            if (n == 0) {
-                BT_CPPLOGD("Client disconnected");
-                shutdown(client_fd, SHUT_RDWR);
-                close(client_fd);
-                break;
-            }
-            for (size_t i = 0; i < n; ++i) {
-                std::fprintf(stderr, "%02x", _mReadBuf[i]);
-            }
+        const auto cleanup = [this] {
+            shutdown(_mClientFd, SHUT_RDWR);
+            close(_mClientFd);
+        };
+
+        BT_CPPLOGD("Client connected");
+        try {
+            _clientLoop();
+        } catch (const bt2c::Error&) {
+            cleanup();
+            BT_CPPLOGE_APPEND_CAUSE_AND_RETHROW("Error while reading data from client");
+        }
+        BT_CPPLOGD("Client disconnected");
+        cleanup();
+    }
+}
+
+void CtfLiveSocketServer::_clientLoop()
+{
+    while (true) {
+        const auto n = recv(_mClientFd, _mReadBuf.data(), 1, 0);
+        if (n == -1) {
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "recv() failed: ret={}", errno);
+        }
+        if (n == 0) {
+            break;
+        }
+        for (size_t i = 0; i < n; ++i) {
+            std::fprintf(stderr, "%02x", _mReadBuf[i]);
         }
     }
 }

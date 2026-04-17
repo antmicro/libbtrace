@@ -30,9 +30,11 @@ private:
     static constexpr int INCOMING_BUF_SIZE = 4096;
     using sock_type_t = int;
 
+    void _clientLoop();
     void _socketServerLoop();
     std::thread _mSocketThread;
     sock_type_t _mSocketFd;
+    sock_type_t _mClientFd;
     std::array<uint8_t, INCOMING_BUF_SIZE> _mReadBuf;
     bt2c::Logger _mLogger;
 };
