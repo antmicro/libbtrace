@@ -24,6 +24,7 @@
 #include "../common/src/metadata/metadata-stream-parser-utils.hpp"
 #include "../common/src/msg-iter.hpp"
 #include "plugins/ctf/common/src/item-seq/medium.hpp"
+#include "plugins/ctf/live-src/socket.hpp"
 
 template <typename T, void (*put_ref_func)(const T *)>
 struct bt_object_put_reffer
@@ -80,6 +81,7 @@ struct ctf_live_trace
 struct ctf_live_component
 {
     std::unique_ptr<ctf_live_trace> trace;
+    std::unique_ptr<CtfLiveSocketServer> server;
 };
 
 class ctf_live_medium;
@@ -105,6 +107,7 @@ public:
     ctf_live_medium() = default;
 
     ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
+
 private:
     std::vector<uint8_t> dummy_file;
 };

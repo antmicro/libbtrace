@@ -16,6 +16,7 @@
 #include "cpp-common/bt2c/exc.hpp"
 #include "cpp-common/bt2c/file-utils.hpp"
 #include "cpp-common/bt2c/logging.hpp"
+#include "cpp-common/bt2s/make-unique.hpp"
 #include "cpp-common/vendor/fmt/format.h"
 
 #include "../common/src/metadata/ctf-ir.hpp"
@@ -24,6 +25,7 @@
 #include "../common/src/pkt-props.hpp"
 #include "live-src.hpp"
 #include "plugins/ctf/common/src/item-seq/medium.hpp"
+#include "plugins/ctf/live-src/socket.hpp"
 
 #define DEBUGPROBE std::printf("enter %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__)
 
@@ -124,6 +126,12 @@ ctf_live_init(bt_self_component_source *self_comp_src,
         port->name = std::string {"out"} + std::to_string(port->stream_id);
         port->data_stream_cls = streamCls.get();
         bt_self_component_source_add_output_port(self_comp_src, port->name.data(), port, nullptr);
+    }
+    try {
+        comp->server = bt2s::make_unique<CtfLiveSocketServer>();
+    } catch (const bt2c::Error&) {
+        std::fprintf(stderr,
+                     "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ERROR INITIALIZING SERVER!!!!!\n");
     }
 
     return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
