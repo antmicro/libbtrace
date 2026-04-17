@@ -11,6 +11,8 @@
 #include <array>
 #include <thread>
 
+#include "cpp-common/bt2c/logging.hpp"
+
 #include "plugins/ctf/common/src/item-seq/medium.hpp"
 
 class CtfLiveSocketMedium;
@@ -32,6 +34,7 @@ private:
     std::thread _mSocketThread;
     sock_type_t _mSocketFd;
     std::array<uint8_t, INCOMING_BUF_SIZE> _mReadBuf;
+    bt2c::Logger _mLogger;
 };
 
 class CtfLiveSocketMedium : public ctf::src::Medium
