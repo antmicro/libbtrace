@@ -33,7 +33,7 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
     memset(&server, 0, sizeof(server));
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons(42674);
+    server.sin_port = htons(42674); // TODO: Configure from params in live-src
     memset(server.sin_zero, '\0', sizeof(server.sin_zero));
     auto err = bind(_mSocketFd, reinterpret_cast<sockaddr *>(&server), sizeof(server));
     if (err != 0) {
