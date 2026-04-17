@@ -114,7 +114,7 @@ void CtfLiveSocketServer::_clientLoop()
 
 void CtfLiveSocketServer::_pushData(bt2s::span<uint8_t> buf)
 {
-    BT_CPPLOGD("Pushing data to attached FIFOs: len={}", buf.size());
+    // BT_CPPLOGD("Pushing data to attached FIFOs: len={}", buf.size());
     for (auto& fifo : _mFifos) {
         fifo->push(buf);
     }
@@ -155,7 +155,7 @@ ctf::src::Buf CtfLiveSocketMedium::buf(bt2c::DataLen offset, bt2c::DataLen minSi
 }
 
 CtfLiveSocketFifo::CtfLiveSocketFifo() :
-    _mMutex(), _mByteQueue(), _mCurrentOffset(0), _mCurrentBuf(),
+    _mMutex(), _mCv(), _mByteQueue(), _mCurrentOffset(0), _mCurrentBuf(),
     _mLogger("FIFO", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
 {
 }
@@ -168,12 +168,12 @@ ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
                                           offset, _mCurrentOffset);
     }
 
-    std::lock_guard<std::mutex> lg {_mMutex};
+    std::unique_lock<std::mutex> lk(_mMutex);
     // If there's not enough data, return an empty buffer.
     if (_mByteQueue.size() < count) {
         BT_CPPLOGD("FIXME Not enough data this should probably block?");
+        _mCv.wait(lk);
         throw bt2c::TryAgain();
-        return ctf::src::Buf();
     }
     // Resize the temp buffer if we need more space for the request.
     if (_mCurrentBuf.size() < count) {
@@ -185,13 +185,27 @@ ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
         _mCurrentBuf[i] = _mByteQueue.front();
         _mByteQueue.pop_front();
     }
+    BT_CPPLOGD("FIFO={} returning data len={}", fmt::ptr(this), count);
+    for (auto i = 0; i < count; ++i) {
+        std::fprintf(stderr, "%02x", _mCurrentBuf[i]);
+    }
+    std::fprintf(stderr, "\n");
     return ctf::src::Buf(_mCurrentBuf.data(), bt2c::DataLen::fromBytes(count));
 }
 
 void CtfLiveSocketFifo::push(bt2s::span<uint8_t> data)
 {
-    std::lock_guard<std::mutex> lg {_mMutex};
-    for (auto b : data) {
-        _mByteQueue.push_back(b);
+    {
+        std::lock_guard<std::mutex> lg {_mMutex};
+        for (auto b : data) {
+            _mByteQueue.push_back(b);
+        }
     }
+    _mCv.notify_one();
+}
+
+void CtfLiveSocketFifo::_waitForData()
+{
+    std::unique_lock<std::mutex> lk(_mMutex);
+    _mCv.wait(lk);
 }

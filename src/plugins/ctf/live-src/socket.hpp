@@ -9,6 +9,7 @@
 #define BABELTRACE_PLUGINS_CTF_LIVE_SRC_SOCKET_HPP
 
 #include <array>
+#include <condition_variable>
 #include <cstdint>
 #include <deque>
 #include <mutex>
@@ -31,7 +32,11 @@ public:
     void push(bt2s::span<uint8_t>);
 
 private:
+    void _waitForData();
+
     std::mutex _mMutex;
+    // Used for notification from socket thread to readers.
+    std::condition_variable _mCv;
     std::deque<uint8_t> _mByteQueue;
     unsigned long _mCurrentOffset;
     std::vector<uint8_t> _mCurrentBuf;
@@ -78,6 +83,7 @@ public:
     CtfLiveSocketMedium(CtfLiveSocketServer *, CtfLiveSocketFifo *);
     ~CtfLiveSocketMedium() override;
 
+    // Buf may only be ever called from a single thread.
     ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
 
 private:
