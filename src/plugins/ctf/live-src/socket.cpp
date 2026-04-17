@@ -163,9 +163,16 @@ CtfLiveSocketFifo::CtfLiveSocketFifo() :
 ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
 {
     if (offset != _mCurrentOffset) {
-        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error,
-                                          "next(): requested offset != current offset ({} != {})",
-                                          offset, _mCurrentOffset);
+        BT_ASSERT(offset >= _mCurrentOffset);
+        {
+            std::unique_lock<std::mutex> lk(_mMutex);
+            const auto bytes_to_drop = offset - _mCurrentOffset;
+            for (auto i = 0; i < bytes_to_drop; ++i) {
+                _mByteQueue.pop_front();
+            }
+            _mCurrentOffset = offset;
+        }
+        BT_CPPLOGD("Advance to offset={}", offset);
     }
 
     std::unique_lock<std::mutex> lk(_mMutex);
@@ -182,8 +189,7 @@ ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
     // Copy data to a temporary buffer. The data will persist until the next
     // call to next().
     for (auto i = 0; i < count; ++i) {
-        _mCurrentBuf[i] = _mByteQueue.front();
-        _mByteQueue.pop_front();
+        _mCurrentBuf[i] = _mByteQueue[i];
     }
     BT_CPPLOGD("FIFO={} returning data len={}", fmt::ptr(this), count);
     for (auto i = 0; i < count; ++i) {
