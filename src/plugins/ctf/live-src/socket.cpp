@@ -1,4 +1,5 @@
 #include <memory>
+#include <mutex>
 #include <thread>
 
 #include <arpa/inet.h>
@@ -6,9 +7,12 @@
 #include <sys/socket.h>
 
 #include "cpp-common/bt2/exc.hpp"
+#include "cpp-common/bt2c/data-len.hpp"
 #include "cpp-common/bt2c/exc.hpp"
 #include "cpp-common/bt2c/logging.hpp"
+#include "cpp-common/bt2s/make-unique.hpp"
 
+#include "plugins/ctf/common/src/item-seq/medium.hpp"
 #include "socket.hpp"
 
 static std::string sockaddr_to_string(const sockaddr_in& addr)
@@ -22,7 +26,7 @@ static std::string sockaddr_to_string(const sockaddr_in& addr)
 }
 
 CtfLiveSocketServer::CtfLiveSocketServer() :
-    _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Debug)
+    _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
 {
     _mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_mSocketFd == -1) {
@@ -104,18 +108,34 @@ void CtfLiveSocketServer::_clientLoop()
         if (n == 0) {
             break;
         }
-        for (size_t i = 0; i < n; ++i) {
-            std::fprintf(stderr, "%02x", _mReadBuf[i]);
-        }
+        _pushData(bt2s::span<uint8_t> {_mReadBuf.data(), (size_t) n});
+    }
+}
+
+void CtfLiveSocketServer::_pushData(bt2s::span<uint8_t> buf)
+{
+    BT_CPPLOGD("Pushing data to attached FIFOs: len={}", buf.size());
+    for (auto& fifo : _mFifos) {
+        fifo->push(buf);
     }
 }
 
 std::unique_ptr<CtfLiveSocketMedium> CtfLiveSocketServer::create_medium()
 {
-    return {};
+    auto fifo = bt2s::make_unique<CtfLiveSocketFifo>();
+    auto *ptr = fifo.get();
+    _mFifos.emplace_back(std::move(fifo));
+
+    // The medium receives an unowned pointer, ownership of the fifo belongs to
+    // the server.
+    auto medium = bt2s::make_unique<CtfLiveSocketMedium>(this, ptr);
+    BT_CPPLOGD("Created new medium for socket server: medium={}", fmt::ptr(medium.get()));
+    return medium;
 }
 
-CtfLiveSocketMedium::CtfLiveSocketMedium()
+CtfLiveSocketMedium::CtfLiveSocketMedium(CtfLiveSocketServer *server, CtfLiveSocketFifo *fifo) :
+    _mServer(server), _mFifo(fifo),
+    _mLogger("MEDIUM", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
 {
 }
 
@@ -125,5 +145,53 @@ CtfLiveSocketMedium::~CtfLiveSocketMedium()
 
 ctf::src::Buf CtfLiveSocketMedium::buf(bt2c::DataLen offset, bt2c::DataLen minSize)
 {
-    return ctf::src::Buf();
+    // The medium only gets asked about whole byte offsets and min sizes.
+    BT_ASSERT_DBG(offset.extraBitCount() == 0);
+    BT_ASSERT_DBG(minSize.extraBitCount() == 0);
+    BT_ASSERT_DBG(minSize.extraBitCount() == 0);
+    BT_ASSERT_DBG(_mFifo);
+    BT_CPPLOGD("buf(): offset={} minSize={}", offset.bytes(), minSize.bytes());
+    return _mFifo->next(offset.bytes(), minSize.bytes());
+}
+
+CtfLiveSocketFifo::CtfLiveSocketFifo() :
+    _mMutex(), _mByteQueue(), _mCurrentOffset(0), _mCurrentBuf(),
+    _mLogger("FIFO", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
+{
+}
+
+ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
+{
+    if (offset != _mCurrentOffset) {
+        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error,
+                                          "next(): requested offset != current offset ({} != {})",
+                                          offset, _mCurrentOffset);
+    }
+
+    std::lock_guard<std::mutex> lg {_mMutex};
+    // If there's not enough data, return an empty buffer.
+    if (_mByteQueue.size() < count) {
+        BT_CPPLOGD("FIXME Not enough data this should probably block?");
+        throw bt2c::TryAgain();
+        return ctf::src::Buf();
+    }
+    // Resize the temp buffer if we need more space for the request.
+    if (_mCurrentBuf.size() < count) {
+        _mCurrentBuf.resize(count);
+    }
+    // Copy data to a temporary buffer. The data will persist until the next
+    // call to next().
+    for (auto i = 0; i < count; ++i) {
+        _mCurrentBuf[i] = _mByteQueue.front();
+        _mByteQueue.pop_front();
+    }
+    return ctf::src::Buf(_mCurrentBuf.data(), bt2c::DataLen::fromBytes(count));
+}
+
+void CtfLiveSocketFifo::push(bt2s::span<uint8_t> data)
+{
+    std::lock_guard<std::mutex> lg {_mMutex};
+    for (auto b : data) {
+        _mByteQueue.push_back(b);
+    }
 }

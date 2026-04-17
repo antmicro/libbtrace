@@ -33,24 +33,6 @@ using namespace bt2c::literals::datalen;
 
 static bt2c::Logger s_logger {"SOURCE.CTF.LIVE", "SOURCE.CTF.LIVE", bt2c::Logger::Level::Debug};
 
-ctf::src::Buf ctf_live_medium::buf(bt2c::DataLen offset, bt2c::DataLen minSize)
-{
-    if (dummy_file.size() == 0) {
-        dummy_file = bt2c::dataFromFile("trace.ctf", s_logger, true);
-    }
-
-    /* The medium only gets asked about whole byte offsets and min sizes. */
-    BT_ASSERT_DBG(offset.extraBitCount() == 0);
-    BT_ASSERT_DBG(minSize.extraBitCount() == 0);
-    if (offset.bytes() + minSize.bytes() >= dummy_file.size()) {
-        throw bt2c::TryAgain();
-    }
-
-    // std::fprintf(stderr, "SOURCE.CTF.LIVE::buf() CALED! offset=%d minSize=%d\n", offset.bytes(),
-    //              minSize.bytes());
-    return ctf::src::Buf(dummy_file.data() + offset.bytes(), minSize);
-}
-
 ctf_live_component *priv(bt_self_component_source *component)
 {
     return static_cast<ctf_live_component *>(
@@ -183,7 +165,7 @@ ctf_live_iterator_init(bt_self_message_iterator *self_msg_iter,
 
     it->comp = static_cast<ctf_live_component *>(bt_self_component_get_data(self_component));
     it->stream = streamCls.instantiate(*it->comp->trace->trace, port->stream_id);
-    auto medium = bt2s::make_unique<ctf_live_medium>();
+    auto medium = it->comp->server->create_medium();
     it->msg_iter = bt2s::make_unique<ctf::src::MsgIter>(
         bt2::wrap(self_msg_iter), *it->comp->trace->cls(), it->comp->trace->parseRet->uuid,
         *it->stream, std::move(medium), ctf::src::MsgIterQuirks {}, s_logger);

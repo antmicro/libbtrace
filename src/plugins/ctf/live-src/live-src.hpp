@@ -84,8 +84,6 @@ struct ctf_live_component
     std::unique_ptr<CtfLiveSocketServer> server;
 };
 
-class ctf_live_medium;
-
 struct ctf_live_iterator
 {
     ctf_live_component *comp;
@@ -99,17 +97,6 @@ struct ctf_live_iterator
     bt_message_iterator_class_next_method_status next_saved_status =
         BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
     const bt_error *next_saved_error = nullptr;
-};
-
-class ctf_live_medium : public ctf::src::Medium
-{
-public:
-    ctf_live_medium() = default;
-
-    ctf::src::Buf buf(bt2c::DataLen offset, bt2c::DataLen minSize) override;
-
-private:
-    std::vector<uint8_t> dummy_file;
 };
 
 struct ctf_live_port_output
