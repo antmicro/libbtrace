@@ -11,6 +11,16 @@
 
 #include "socket.hpp"
 
+static std::string sockaddr_to_string(const sockaddr_in& addr)
+{
+    char buf[INET6_ADDRSTRLEN];
+    auto *p = inet_ntop(addr.sin_family, &addr.sin_addr, buf, sizeof(buf));
+    if (!p) {
+        return std::string {"<invalid>"};
+    }
+    return std::string {p} + ":" + std::to_string(addr.sin_port);
+}
+
 CtfLiveSocketServer::CtfLiveSocketServer() :
     _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Debug)
 {
@@ -71,7 +81,8 @@ void CtfLiveSocketServer::_socketServerLoop()
             close(_mClientFd);
         };
 
-        BT_CPPLOGD("Client connected");
+        BT_CPPLOGI("Client connected ({}:{})", sockaddr_to_string(client_addr),
+                   client_addr.sin_port);
         try {
             _clientLoop();
         } catch (const bt2c::Error&) {
