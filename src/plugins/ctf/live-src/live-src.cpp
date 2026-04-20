@@ -11,6 +11,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "cpp-common/bt2/exc.hpp"
 #include "cpp-common/bt2/wrap.hpp"
 #include "cpp-common/bt2c/data-len.hpp"
 #include "cpp-common/bt2c/exc.hpp"
@@ -197,6 +198,9 @@ ctf_live_iterator_next(bt_self_message_iterator *self_msg_iter, bt_message_array
             break;
         } catch (const std::bad_alloc&) {
             status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
+            break;
+        } catch (const bt2::TryAgain&) {
+            status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
             break;
         }
     } while (i < capacity && status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK);
