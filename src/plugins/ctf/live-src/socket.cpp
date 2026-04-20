@@ -55,6 +55,7 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
 
 CtfLiveSocketServer::~CtfLiveSocketServer()
 {
+    BT_CPPLOGD("Cleaning up socket server={}", fmt::ptr(this));
     if (_mClientFd > 0) {
         shutdown(_mClientFd, SHUT_RDWR);
         close(_mClientFd);
@@ -141,6 +142,7 @@ CtfLiveSocketMedium::CtfLiveSocketMedium(CtfLiveSocketServer *server, CtfLiveSoc
 
 CtfLiveSocketMedium::~CtfLiveSocketMedium()
 {
+    BT_CPPLOGD("Cleaning up socket medium={}", fmt::ptr(this));
 }
 
 ctf::src::Buf CtfLiveSocketMedium::buf(bt2c::DataLen offset, bt2c::DataLen minSize)
