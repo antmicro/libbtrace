@@ -26,7 +26,7 @@ static std::string sockaddr_to_string(const sockaddr_in& addr)
 }
 
 CtfLiveSocketServer::CtfLiveSocketServer() :
-    _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
+    _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
     _mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_mSocketFd == -1) {
@@ -136,7 +136,7 @@ std::unique_ptr<CtfLiveSocketMedium> CtfLiveSocketServer::create_medium()
 
 CtfLiveSocketMedium::CtfLiveSocketMedium(CtfLiveSocketServer *server, CtfLiveSocketFifo *fifo) :
     _mServer(server), _mFifo(fifo),
-    _mLogger("MEDIUM", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
+    _mLogger("MEDIUM", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
 }
 
@@ -158,7 +158,7 @@ ctf::src::Buf CtfLiveSocketMedium::buf(bt2c::DataLen offset, bt2c::DataLen minSi
 
 CtfLiveSocketFifo::CtfLiveSocketFifo() :
     _mMutex(), _mCv(), _mByteQueue(), _mCurrentOffset(0), _mCurrentBuf(),
-    _mLogger("FIFO", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Trace)
+    _mLogger("FIFO", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
 }
 
