@@ -162,6 +162,16 @@ CtfLiveSocketFifo::CtfLiveSocketFifo() :
 {
 }
 
+static std::string span_to_hexdump(bt2s::span<uint8_t> buf)
+{
+    std::string str;
+    str.reserve(buf.size() * 2);
+    for (auto i = 0; i < buf.size(); ++i) {
+        str += fmt::format("{:02x}", buf[i]);
+    }
+    return str;
+}
+
 ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
 {
     if (offset != _mCurrentOffset) {
@@ -194,10 +204,7 @@ ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
         _mCurrentBuf[i] = _mByteQueue[i];
     }
     BT_CPPLOGD("FIFO={} returning data len={}", fmt::ptr(this), count);
-    for (auto i = 0; i < count; ++i) {
-        std::fprintf(stderr, "%02x", _mCurrentBuf[i]);
-    }
-    std::fprintf(stderr, "\n");
+    BT_CPPLOGD("Data={}", span_to_hexdump(bt2s::span<uint8_t>(_mCurrentBuf.data(), count)));
     return ctf::src::Buf(_mCurrentBuf.data(), bt2c::DataLen::fromBytes(count));
 }
 
