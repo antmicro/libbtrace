@@ -33,6 +33,13 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
         BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "socket() call failed: ret={}", _mSocketFd);
     }
 
+    // Set SO_REUSEADDR, so server can be immediately restarted if a failure
+    // occurs, instead of potentially dying on address already in use.
+    int optval = 1;
+    if (setsockopt(_mSocketFd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+        BT_CPPLOGW("setsockopt(SO_REUSEADDR) failed");
+    }
+
     sockaddr_in server;
     memset(&server, 0, sizeof(server));
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
