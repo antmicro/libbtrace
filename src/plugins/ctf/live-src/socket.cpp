@@ -26,7 +26,7 @@ static std::string sockaddr_to_string(const sockaddr_in& addr)
 }
 
 CtfLiveSocketServer::CtfLiveSocketServer() :
-    _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
+    _mKeepRunning(true), _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
     _mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_mSocketFd == -1) {
@@ -64,6 +64,7 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
 CtfLiveSocketServer::~CtfLiveSocketServer()
 {
     BT_CPPLOGD("Cleaning up socket server={}", fmt::ptr(this));
+    _mKeepRunning = false;
     if (_mClientFd > 0) {
         shutdown(_mClientFd, SHUT_RDWR);
         close(_mClientFd);
@@ -78,7 +79,7 @@ CtfLiveSocketServer::~CtfLiveSocketServer()
 
 void CtfLiveSocketServer::_socketServerLoop()
 {
-    while (true) {
+    while (_mKeepRunning) {
         sockaddr_in client_addr;
         socklen_t client_addr_size = sizeof(client_addr);
 
@@ -109,7 +110,7 @@ void CtfLiveSocketServer::_socketServerLoop()
 
 void CtfLiveSocketServer::_clientLoop()
 {
-    while (true) {
+    while (_mKeepRunning) {
         const auto n = recv(_mClientFd, _mReadBuf.data(), 1, 0);
         if (n == -1) {
             BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "recv() failed: ret={}", errno);
@@ -143,8 +144,7 @@ std::unique_ptr<CtfLiveSocketMedium> CtfLiveSocketServer::create_medium()
 }
 
 CtfLiveSocketMedium::CtfLiveSocketMedium(CtfLiveSocketServer *server, CtfLiveSocketFifo *fifo) :
-    _mServer(server), _mFifo(fifo),
-    _mLogger("MEDIUM", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
+    _mServer(server), _mFifo(fifo), _mLogger("MEDIUM", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
 }
 

@@ -9,6 +9,7 @@
 #define BABELTRACE_PLUGINS_CTF_LIVE_SRC_SOCKET_HPP
 
 #include <array>
+#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
@@ -65,6 +66,7 @@ private:
     void _clientLoop();
     void _socketServerLoop();
     void _pushData(bt2s::span<uint8_t>);
+    std::atomic<bool> _mKeepRunning;
     std::thread _mSocketThread;
     sock_type_t _mSocketFd;
     sock_type_t _mClientFd;
