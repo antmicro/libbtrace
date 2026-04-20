@@ -183,8 +183,6 @@ ctf_live_iterator_next(bt_self_message_iterator *self_msg_iter, bt_message_array
         BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
     uint64_t i = 0;
 
-    std::fprintf(stderr, "ctf_live_iterator=%p\n", it);
-
     do {
         try {
             bt2::ConstMessage::Shared msg = it->msg_iter->next();
