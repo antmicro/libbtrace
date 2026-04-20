@@ -47,6 +47,7 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
     if (err != 0) {
         BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "listen() failed: ret={}", err);
     }
+    BT_CPPLOGI("Server listening at {}", sockaddr_to_string(server));
 
     _mSocketThread = std::thread([this] {
         this->_socketServerLoop();
@@ -74,7 +75,7 @@ void CtfLiveSocketServer::_socketServerLoop()
         sockaddr_in client_addr;
         socklen_t client_addr_size = sizeof(client_addr);
 
-        BT_CPPLOGD("Awaiting client connection");
+        BT_CPPLOGI("Awaiting client connection");
         _mClientFd =
             accept(_mSocketFd, reinterpret_cast<sockaddr *>(&client_addr), &client_addr_size);
         if (_mClientFd < 0) {
@@ -94,7 +95,7 @@ void CtfLiveSocketServer::_socketServerLoop()
             cleanup();
             BT_CPPLOGE_APPEND_CAUSE_AND_RETHROW("Error while reading data from client");
         }
-        BT_CPPLOGD("Client disconnected");
+        BT_CPPLOGI("Client disconnected");
         cleanup();
     }
 }
