@@ -2,6 +2,8 @@
 #
 # Copyright (C) 2017 Francis Deslauriers <francis.deslauriers@efficios.com>
 # Copyright (C) 2020 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+# Copyright (c) 2026 Analog Devices, Inc.
+# Copyright (c) 2026 Antmicro <www.antmicro.com>
 
 import os
 import shutil
@@ -73,11 +75,11 @@ def getenv_assert(name: str):
 # build failure.
 def get_ldshared():
     cc = getenv_assert("CC")
-    ldflags = getenv_assert("LDFLAGS")
+    ldflags = transform_paths_if_mingw(getenv_assert("LDFLAGS"))
     [py_cc] = original_get_config_vars("CC")
     [py_ldshared] = original_get_config_vars("LDSHARED")
 
-    if not py_ldshared.startswith(py_cc):
+    if py_ldshared is not None and not py_ldshared.startswith(py_cc or ""):
         return py_ldshared
 
     return "{} -shared {}".format(cc, ldflags)
@@ -128,9 +130,22 @@ def cygpath_m(path: str):
 # On MinGW systems, convert absolute include paths (starting with '-I/')
 # in 'flags' to valid Windows paths using cygpath. On other systems,
 # return 'flags' as-is.
-def transform_include_paths_if_mingw(flags: str):
+def transform_paths_if_mingw(flags: str):
     if not is_mingw():
         return flags
+
+    result = []
+    for flag in flags.split():
+        for prefix in ("-I/", "-L/"):
+            if flag.startswith(prefix):
+                flag = prefix[:2] + cygpath_m(flag[2:])
+                break
+        result.append(flag)
+    return " ".join(result)
+
+
+def transform_include_paths_if_mingw(flags: str):
+    return transform_paths_if_mingw(flags)
 
     return " ".join(
         (
@@ -179,9 +194,23 @@ class custom_build_ext(build_ext):
                 else "compiler_so"
             ),
             "{} {} {} {}".format(
-                cxx, sysconfig.get_config_var("CCSHARED"), cxxflags, cppflags
+                cxx, sysconfig.get_config_var("CCSHARED") or "", cxxflags, cppflags
             ),
         )
+
+        if is_mingw():
+            import shlex
+            ldflags = transform_paths_if_mingw(getenv_assert("LDFLAGS"))
+            for ext in self.extensions:
+                link_args = shlex.split(ldflags)
+                lib_dirs = [f[2:] for f in link_args if f.startswith("-L")]
+                other_args = [f for f in link_args if not f.startswith("-L")]
+                ext.library_dirs = (ext.library_dirs or []) + lib_dirs
+                ext.extra_link_args = (ext.extra_link_args or []) + other_args
+                ext.extra_objects = [
+                    cygpath_m(obj) if obj.startswith("/") else obj
+                    for obj in (ext.extra_objects or [])
+                ]
 
         super().build_extensions()
 
