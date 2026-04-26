@@ -1,11 +1,11 @@
-# Copyright (c) 2025 Analog Devices, Inc.
-# Copyright (c) 2025 Antmicro <www.antmicro.com>
+# Copyright (c) 2025-2026 Analog Devices, Inc.
+# Copyright (c) 2025-2026 Antmicro <www.antmicro.com>
 #
 # SPDX-License-Identifier: Apache-2.0
 
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=76.0.0"]
 
 [project]
 name = "bt2"
@@ -33,11 +33,12 @@ dev = [
 
 [tool.setuptools]
 packages = ["bt2"]
-package-data.bt2 = ["*.so", "*.so.0", "*.dylib"]
+package-data.bt2 = ["*.so", "*.so.0", "*.dylib", "*.dll", "*.pyd"]
 ext-modules = [{ name = "__bt2_dummy_ext.so", sources = ["bt2/dummy_ext.c"] }]
 
 [tool.setuptools.cmdclass]
 build = "custom_build.build"
+build_ext = "custom_build.build_ext"
 
 [tool.cibuildwheel]
 test-requires = "pytest"
@@ -53,6 +54,13 @@ disable-host-mount = false
 [tool.cibuildwheel.macos]
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+before-build = [
+    "c:\\msys64\\msys2_shell.cmd -defterm -no-start -ucrt64 -where . -c 'pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-autotools mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-swig mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-pkgconf mingw-w64-ucrt-x86_64-python-setuptools make bison flex patch'",
+    "pip install delvewheel",
+]
+environment = { PATH = "$PATH;C:\\msys64\\ucrt64\\bin;C:\\msys64\\bin", MSYSTEM = "UCRT64" }
 [[tool.cibuildwheel.overrides]]
 select = "*-manylinux*"
 before-all = [
