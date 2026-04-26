@@ -57,10 +57,12 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
 before-build = [
-    "c:\\msys64\\msys2_shell.cmd -defterm -no-start -ucrt64 -where . -c 'pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-autotools mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-swig mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-pkgconf mingw-w64-ucrt-x86_64-python-setuptools make bison flex patch'",
+    "c:\\msys64\\msys2_shell.cmd -defterm -no-start -ucrt64 -where . -c 'pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-autotools mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-swig mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-pkgconf mingw-w64-ucrt-x86_64-python-setuptools mingw-w64-ucrt-x86_64-glib2 make bison flex patch'",
     "pip install delvewheel",
 ]
 environment = { PATH = "$PATH;C:\\msys64\\ucrt64\\bin;C:\\msys64\\bin", MSYSTEM = "UCRT64" }
+repair-wheel-command = "delvewheel repair --add-path C:/msys64/ucrt64/bin --ignore-existing -w {dest_dir} {wheel}"
+
 [[tool.cibuildwheel.overrides]]
 select = "*-manylinux*"
 before-all = [
