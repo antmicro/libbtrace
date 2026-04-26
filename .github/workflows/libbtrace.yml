@@ -26,30 +26,31 @@ jobs:
   cibuildwheel:
     strategy:
       matrix:
-        os: [[ubuntu-latest], [macos-14,  14.0], [macos-15, 15.0]]
+        os: [[ubuntu-latest], [macos-14,  14.0], [macos-15, 15.0], [windows-latest]]
     runs-on: ${{ matrix.os[0] }}
     name: Build wheels (${{ matrix.os[0] }})
     steps:
+      - name: Disable CRLF conversion for Windows
+        if: ${{ startsWith(matrix.os[0], 'windows-') }}
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
-      - name: Prepare environment script
-        run: |
-          echo '#!/bin/bash\necho "Preparing environment\n"' > ./prepare-env.sh
-          chmod +x ./prepare-env.sh
-      - name: Install dependencies
-        if:  ${{ startsWith(matrix.os[0], 'macos-') }}
+      - name: Install dependencies for MacOS
+        if: ${{ startsWith(matrix.os[0], 'macos-') }}
         run: |
           brew install swig libtool bison automake autoconf flex glib pkgconf
-          echo 'export PATH="$(brew --prefix bison)/bin:$PATH"' >> ./prepare-env.sh
-          echo 'export MACOSX_DEPLOYMENT_TARGET=${{ matrix.os[1] }}' >> ./prepare-env.sh
+          echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
+          echo 'MACOSX_DEPLOYMENT_TARGET=${{ matrix.os[1] }}' >> $GITHUB_ENV
+      - name: Add MSYS2 to PATH for Windows
+        if: ${{ startsWith(matrix.os[0], 'windows-') }}
+        run: echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - name: Install pipx
-        run: python3 -m pip install pipx
+        run: python -m pip install pipx
       - name: Build wheels
         run: |
-          source ./prepare-env.sh
-          python3 -m pipx run cibuildwheel
+          python -m pipx run cibuildwheel
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
