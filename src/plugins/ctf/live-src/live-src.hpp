@@ -52,10 +52,10 @@ BT_OBJ_REF(bt_message)
 
 struct ctf_live_trace
 {
+    bt2c::Logger logger;
     ctf::src::ClkClsCfg clkClsCfg;
     bt2::OptionalBorrowedObject<bt2::SelfComponent> selfComp;
     bt2s::optional<ctf::src::MetadataStreamParser::ParseRet> parseRet;
-    bt2c::Logger logger;
     bt2::Trace::Shared trace;
 
     explicit ctf_live_trace(const ctf::src::ClkClsCfg& clkClsCfg,

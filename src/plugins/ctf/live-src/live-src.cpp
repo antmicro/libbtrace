@@ -34,7 +34,7 @@ using namespace bt2c::literals::datalen;
 
 static bt2c::Logger s_logger {"SOURCE.CTF.LIVE", "SOURCE.CTF.LIVE", bt2c::Logger::Level::Info};
 
-ctf_live_component *priv(bt_self_component_source *component)
+static ctf_live_component *priv(bt_self_component_source *component)
 {
     return static_cast<ctf_live_component *>(
         bt_self_component_get_data(bt_self_component_source_as_self_component(component)));
