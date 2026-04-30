@@ -1,5 +1,12 @@
-7a8,11
+7a8,18
 > os.environ.update({"BABELTRACE_PLUGIN_PATH": os.path.dirname(__file__)})
 > if os.name == "nt" and sys.version_info >= (3, 8):
->     os.add_dll_directory(os.path.dirname(__file__))
+>     _bt2_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'bt2.libs'))
+>     os.add_dll_directory(_bt2_dir)
+>     import ctypes as _ctypes
+>     for _dll in ("libgcc_s_seh-1.dll", "libstdc++-6.dll", "libwinpthread-1.dll"):
+>         _dll_path = os.path.join(_bt2_dir, _dll)
+>         if os.path.exists(_dll_path):
+>             _ctypes.CDLL(_dll_path)
+>     del _ctypes, _dll, _dll_path, _bt2_dir
 > 
