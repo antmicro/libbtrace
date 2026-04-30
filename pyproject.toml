@@ -61,7 +61,7 @@ before-build = [
     "pip install delvewheel",
 ]
 environment = { PATH = "$PATH;C:\\msys64\\ucrt64\\bin;C:\\msys64\\bin", MSYSTEM = "UCRT64" }
-repair-wheel-command = "delvewheel repair --add-path C:/msys64/ucrt64/bin --ignore-existing -w {dest_dir} {wheel}"
+repair-wheel-command = "delvewheel repair --add-path C:\\msys64\\ucrt64\\bin --ignore-existing --analyze-existing -w {dest_dir} {wheel}"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-manylinux*"
