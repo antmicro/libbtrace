@@ -198,8 +198,7 @@ ctf::src::Buf CtfLiveSocketFifo::next(unsigned long offset, unsigned long count)
     std::unique_lock<std::mutex> lk(_mMutex);
     // If there's not enough data, return an empty buffer.
     if (_mByteQueue.size() < count) {
-        BT_CPPLOGD("FIXME Not enough data this should probably block?");
-        _mCv.wait(lk);
+        BT_CPPLOGD("Not enough data: have={}, need={}", _mByteQueue.size(), count);
         throw bt2c::TryAgain();
     }
     // Resize the temp buffer if we need more space for the request.

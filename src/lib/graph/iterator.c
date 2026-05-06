@@ -56,7 +56,7 @@
  * TODO: Use graph's state (number of active iterators, etc.) and
  * possibly system specifications to make a better guess than this.
  */
-#define MSG_BATCH_SIZE	1
+#define MSG_BATCH_SIZE	15
 
 #define BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(_iter)			\
 	BT_ASSERT_PRE("has-state-to-seek",				\
