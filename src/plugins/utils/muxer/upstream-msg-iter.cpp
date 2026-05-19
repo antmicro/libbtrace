@@ -137,6 +137,7 @@ void UpstreamMsgIter::_tryGetNewMsgs()
      * `_mMsgs.msgs` (set), still requiring to get new messages the next
      * time the user calls reload().
      */
+    auto oldPtr = _mMsgs.msgs ? _mMsgs.msgs->length() : -1;
     _mMsgs.msgs = _mMsgIter->next();
 
     if (!_mMsgs.msgs) {

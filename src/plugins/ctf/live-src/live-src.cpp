@@ -27,6 +27,7 @@
 #include "live-src.hpp"
 #include "plugins/ctf/common/src/item-seq/medium.hpp"
 #include "plugins/ctf/live-src/socket.hpp"
+#include "plugins/utils/muxer/msg-iter.hpp"
 
 #define DEBUGPROBE std::printf("enter %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__)
 
@@ -149,8 +150,6 @@ ctf_live_iterator_init(bt_self_message_iterator *self_msg_iter,
                        bt_self_message_iterator_configuration *config,
                        bt_self_component_port_output *self_port)
 {
-    (void) config;
-
     auto *self_component_port = bt_self_component_port_output_as_self_component_port(self_port);
     auto *self_component = bt_self_component_port_borrow_component(self_component_port);
 
@@ -160,6 +159,7 @@ ctf_live_iterator_init(bt_self_message_iterator *self_msg_iter,
     if (!it) {
         return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
     }
+    bt_self_message_iterator_configuration_set_can_seek_forward(config, true);
     bt_self_message_iterator_set_data(self_msg_iter, it);
 
     const auto streamCls = *port->data_stream_cls->libCls();

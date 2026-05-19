@@ -8,6 +8,7 @@
 #ifndef BABELTRACE_PLUGINS_UTILS_MUXER_MSG_ITER_HPP
 #define BABELTRACE_PLUGINS_UTILS_MUXER_MSG_ITER_HPP
 
+#include <unordered_set>
 #include <vector>
 
 #include "cpp-common/bt2/component-class-dev.hpp"
@@ -29,6 +30,7 @@ class MsgIter final : public bt2::UserMessageIterator<MsgIter, Comp>
 
 private:
     /* Comparator for `_mHeap` with its own logger */
+    bool isLive = false;
     class _HeapComparator final
     {
     public:
@@ -48,6 +50,7 @@ public:
     explicit MsgIter(bt2::SelfMessageIterator selfMsgIter,
                      bt2::SelfMessageIteratorConfiguration config,
                      bt2::SelfComponentOutputPort selfPort);
+    void reset();
 
 private:
     bool _canSeekBeginning();
@@ -94,6 +97,7 @@ private:
      * shortly after.
      */
     std::vector<UpstreamMsgIter *> _mUpstreamMsgItersToReload;
+    std::unordered_set<UpstreamMsgIter *> _mReloadedThisCycle;
 
     /* Clock class correlation validator */
     bt2ccv::ClockCorrelationValidator _mClkCorrValidator;

@@ -289,6 +289,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         begin: typing.Union[None, numbers.Real, datetime.datetime] = None,
         end: typing.Union[None, numbers.Real, datetime.datetime] = None,
         plugin_set: typing.Optional[bt2_plugin._PluginSet] = None,
+        live_mode=False,
     ):
         bt2_utils._check_bool(stream_intersection_mode)
         self._stream_intersection_mode = stream_intersection_mode
@@ -342,6 +343,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         self._src_comps_and_specs = []
         self._flt_comps_and_specs = []
 
+        self.live_mode = live_mode
         self._build_graph()
 
     def _compute_stream_intersections(self):
@@ -415,7 +417,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             raise RuntimeError('cannot find "muxer" filter component class in "utils" plugin')
 
         comp_cls = plugin.filter_component_classes["muxer"]
-        return self._graph.add_component(comp_cls, "muxer")
+        return self._graph.add_component(comp_cls, "muxer", {"live": 1} if self.live_mode else None)
 
     def _create_trimmer(self, begin_ns, end_ns, name):
         plugin = bt2_plugin.find_plugin("utils")

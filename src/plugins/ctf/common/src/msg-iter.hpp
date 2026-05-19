@@ -100,6 +100,10 @@ public:
      * as `bt2c::Error`.
      */
     bt2::ConstMessage::Shared next();
+    const bt2::Stream& stream() const noexcept
+    {
+        return _mStream;
+    }
 
 private:
     /* An optional `unsigned long long` value */

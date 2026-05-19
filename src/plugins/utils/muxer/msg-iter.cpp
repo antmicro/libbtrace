@@ -31,6 +31,7 @@ MsgIter::MsgIter(const bt2::SelfMessageIterator selfMsgIter,
      * input port.
      */
     auto canSeekForward = true;
+    this->isLive = this->_component().live_mode;
 
     for (const auto inputPort : this->_component()._inputPorts()) {
         if (!inputPort.isConnected()) {
@@ -68,6 +69,16 @@ std::string optMsgTsStr(const bt2s::optional<std::int64_t>& ts)
 
 } /* namespace */
 
+void MsgIter::reset()
+{
+    _mReloadedThisCycle.clear();
+    _mUpstreamMsgItersToReload.clear();
+    for (auto& it : _mUpstreamMsgIters) {
+        _mUpstreamMsgItersToReload.push_back(it.get());
+    }
+    this->_ensureFullHeap();
+}
+
 void MsgIter::_next(bt2::ConstMessageArray& msgs)
 {
     /* Make sure all upstream message iterators are part of the heap */
@@ -76,7 +87,10 @@ void MsgIter::_next(bt2::ConstMessageArray& msgs)
     while (msgs.length() < msgs.capacity()) {
         /* Empty heap? */
         if (G_UNLIKELY(_mHeap.isEmpty())) {
-            /* No more upstream messages! */
+            if (this->isLive) {
+                reset();
+            }
+            // Reset to the beginning
             return;
         }
 
@@ -123,7 +137,6 @@ void MsgIter::_next(bt2::ConstMessageArray& msgs)
         BT_CPPLOGD(
             "Trying to reload upstream message iterator having the oldest message: port-name={}",
             oldestUpstreamMsgIter.portName());
-
         try {
             if (G_LIKELY(oldestUpstreamMsgIter.reload() == UpstreamMsgIter::ReloadStatus::More)) {
                 /* New current message: update heap */
@@ -158,9 +171,15 @@ void MsgIter::_ensureFullHeap()
      * then we don't need it anymore (remains alive in
      * `_mUpstreamMsgIters`).
      */
-    for (auto it = _mUpstreamMsgItersToReload.begin(); it != _mUpstreamMsgItersToReload.end();
-         it = _mUpstreamMsgItersToReload.erase(it)) {
-        auto& upstreamMsgIter = **it;
+
+    for (auto& it : _mUpstreamMsgItersToReload) {
+        auto& upstreamMsgIter = *it;
+        // Prevent infinite reload loop on same iterator
+        if (_mReloadedThisCycle.count(&upstreamMsgIter)) {
+            continue;
+        }
+
+        _mReloadedThisCycle.insert(&upstreamMsgIter);
 
         BT_CPPLOGD("Handling upstream message iterator to reload: "
                    "port-name={}, heap-len={}, to-reload-len={}",

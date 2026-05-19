@@ -70,9 +70,10 @@ bt2::ConstMessage::Shared MsgIter::next()
                 if (_mShouldWork && (!_mSkipItemsUntilScopeEndItem || item->isScopeEnd())) {
                     this->_handleItem(*item);
 
-                    if (item->type() == Item::Type::DataStreamInfo &&
-                        (_mStream.cls().id() != _mCurStreamClassId)) {
-                        _mShouldWork = false;
+                    if (item->type() == Item::Type::DataStreamInfo) {
+                        if (_mStream.cls().id() != _mCurStreamClassId) {
+                            _mShouldWork = false;
+                        }
                     }
 
                     if (auto msg = this->_releaseNextMsg()) {

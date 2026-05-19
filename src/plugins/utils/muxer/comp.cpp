@@ -15,10 +15,15 @@ Comp::Comp(const bt2::SelfFilterComponent selfComp, const bt2::ConstMapValue par
 {
     BT_CPPLOGI("Initializing component.");
 
-    /* No parameters expected */
-    if (!params.isEmpty()) {
+    this->live_mode = false;
+    /* Either parameters expected, or live mode gets passed and decoded */
+    if (params.hasEntry("live")) {
+        live_mode = bool(params["live"]);
+    } else if (!params.isEmpty()) {
         BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
-            bt2c::Error, "This component expects no parameters: param-count={}", params.length());
+            bt2c::Error,
+            "This component expects no parameters, or just the 'live' parameter: param-count={}",
+            params.length());
     }
 
     /* Add initial available input port */

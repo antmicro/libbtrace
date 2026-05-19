@@ -23,6 +23,7 @@ class Comp final : public bt2::UserFilterComponent<Comp, MsgIter>
 
 public:
     explicit Comp(bt2::SelfFilterComponent selfComp, bt2::ConstMapValue params, void *);
+    bool live_mode;
 
 protected:
     static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue,
