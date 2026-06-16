@@ -70,6 +70,7 @@ CtfLiveSocketServer::~CtfLiveSocketServer()
         close(_mClientFd);
     }
     if (_mSocketFd > 0) {
+        shutdown(_mSocketFd, SHUT_RDWR);
         close(_mSocketFd);
     }
     if (_mSocketThread.joinable()) {
@@ -86,8 +87,12 @@ void CtfLiveSocketServer::_socketServerLoop()
         BT_CPPLOGI("Awaiting client connection");
         _mClientFd =
             accept(_mSocketFd, reinterpret_cast<sockaddr *>(&client_addr), &client_addr_size);
-        if (_mClientFd < 0) {
+        if (_mClientFd < 0 && _mKeepRunning) {
             BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "accept() failed: ret={}", _mClientFd);
+        } else if (_mClientFd < 0) {
+            // In this case, the shutdown from the destructor force-closed the socket
+            // and accept returned -1. In this case, return to the destructor that joined here
+            break;
         }
 
         const auto cleanup = [this] {
