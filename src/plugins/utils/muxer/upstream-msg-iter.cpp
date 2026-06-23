@@ -140,12 +140,13 @@ void UpstreamMsgIter::_tryGetNewMsgs()
     auto oldPtr = _mMsgs.msgs ? _mMsgs.msgs->length() : -1;
     _mMsgs.msgs = _mMsgIter->next();
 
-    if (!_mMsgs.msgs) {
+    if (!_mMsgs.msgs || _mMsgs.msgs->length() == 0) {
         /*
          * Don't destroy `*_mMsgIter` here because the user may still
          * call seekBeginning() afterwards.
          */
         BT_CPPLOGD("End of upstream message iterator: this={}", fmt::ptr(this));
+        _mMsgs.msgs.reset();
         return;
     }
 
@@ -165,6 +166,28 @@ void UpstreamMsgIter::seekBeginning()
     _mMsgs.msgs.reset();
     _mMsgTs.reset();
     _mDiscardRequired = false;
+}
+
+bool UpstreamMsgIter::tryFetchNewMsgs()
+{
+    _tryGetNewMsgs();
+
+    if (!_mMsgs.msgs) {
+        _mMsgTs.reset();
+        _mDiscardRequired = false;
+        return false;
+    }
+
+    _mMsgs.index = 0;
+
+    if (const auto cs = msgCs(this->msg())) {
+        _mMsgTs = cs->nsFromOrigin();
+    } else {
+        _mMsgTs.reset();
+    }
+
+    _mDiscardRequired = true;
+    return true;
 }
 
 bool UpstreamMsgIter::canSeekForward() const noexcept

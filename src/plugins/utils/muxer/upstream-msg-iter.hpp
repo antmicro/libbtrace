@@ -121,6 +121,15 @@ public:
     ReloadStatus reload();
 
     /*
+     * Forces fetching a new batch of messages, discarding any current
+     * buffered messages. Returns true if new messages were fetched.
+     *
+     * Used in live mode to refresh all iterators after extracting a
+     * message, ensuring other streams' new messages get added to the heap.
+     */
+    bool tryFetchNewMsgs();
+
+    /*
      * Forwards to bt2::MessageIterator::canSeekBeginning().
      */
     bool canSeekBeginning();

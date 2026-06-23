@@ -73,6 +73,7 @@ void MsgIter::reset()
 {
     _mReloadedThisCycle.clear();
     _mUpstreamMsgItersToReload.clear();
+    _mHeapMembers.clear();
     for (auto& it : _mUpstreamMsgIters) {
         _mUpstreamMsgItersToReload.push_back(it.get());
     }
@@ -82,7 +83,10 @@ void MsgIter::reset()
 void MsgIter::_next(bt2::ConstMessageArray& msgs)
 {
     /* Make sure all upstream message iterators are part of the heap */
-    this->_ensureFullHeap();
+    if (this->isLive && msgs.length() == 0) {
+        this->_ensureFullHeap();
+    } else if (!this->isLive)
+        this->_ensureFullHeap();
 
     while (msgs.length() < msgs.capacity()) {
         /* Empty heap? */
@@ -141,16 +145,39 @@ void MsgIter::_next(bt2::ConstMessageArray& msgs)
             if (G_LIKELY(oldestUpstreamMsgIter.reload() == UpstreamMsgIter::ReloadStatus::More)) {
                 /* New current message: update heap */
                 _mHeap.replaceTop(&oldestUpstreamMsgIter);
+                if (this->isLive) {
+                    for (const auto& it : _mUpstreamMsgIters) {
+                        auto *upstream = it.get();
+                        if (upstream == &oldestUpstreamMsgIter) {
+                            continue;
+                        }
+                        if (!_mReloadedThisCycle.count(upstream)) {
+                            if (!_mHeapMembers.count(upstream)) {
+                                try {
+                                    if (upstream->tryFetchNewMsgs()) {
+                                        _mHeap.insert(upstream);
+                                        _mHeapMembers.insert(upstream);
+                                    }
+                                } catch (const bt2::TryAgain&) {
+                                    /* Retry this stream on a later _next(). */
+                                }
+                            }
+                        }
+                    }
+                    _mReloadedThisCycle.clear();
+                }
                 BT_CPPLOGD("More messages available; updated heap: port-name={}, heap-len={}",
                            oldestUpstreamMsgIter.portName(), _mHeap.len());
             } else {
                 _mHeap.removeTop();
+                _mHeapMembers.erase(&oldestUpstreamMsgIter);
                 BT_CPPLOGD("Upstream message iterator has no more messages; removed from heap: "
-                           "port-name{}, heap-len={}",
+                           "port-name={}, heap-len={}",
                            oldestUpstreamMsgIter.portName(), _mHeap.len());
             }
         } catch (const bt2::TryAgain&) {
             _mHeap.removeTop();
+            _mHeapMembers.erase(&oldestUpstreamMsgIter);
             _mUpstreamMsgItersToReload.push_back(&oldestUpstreamMsgIter);
             BT_CPPLOGD("Moved upstream message iterator from heap to \"to reload\" set: "
                        "port-name={}, heap-len={}, to-reload-len={}",
@@ -188,6 +215,7 @@ void MsgIter::_ensureFullHeap()
         if (G_LIKELY(upstreamMsgIter.reload() == UpstreamMsgIter::ReloadStatus::More)) {
             /* New current message: move to heap */
             _mHeap.insert(&upstreamMsgIter);
+            _mHeapMembers.insert(&upstreamMsgIter);
             BT_CPPLOGD("More messages available; "
                        "inserted upstream message iterator into heap from \"to reload\" set: "
                        "port-name={}, heap-len={}",
@@ -198,6 +226,7 @@ void MsgIter::_ensureFullHeap()
                        upstreamMsgIter.portName());
         }
     }
+    _mUpstreamMsgItersToReload.clear();
 }
 
 bool MsgIter::_canSeekBeginning()
@@ -234,6 +263,7 @@ void MsgIter::_seekBeginning()
      * that the simplicity outweighs performance concerns here.
      */
     _mHeap.clear();
+    _mHeapMembers.clear();
     _mUpstreamMsgItersToReload.clear();
 
     /* Make each upstream message iterator seek */

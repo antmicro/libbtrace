@@ -88,6 +88,11 @@ private:
     bt2c::PrioHeap<UpstreamMsgIter *, _HeapComparator> _mHeap;
 
     /*
+     * Tracks which iterators are currently in the heap to avoid duplicates
+     */
+    std::unordered_set<UpstreamMsgIter *> _mHeapMembers;
+
+    /*
      * Current upstream message iterators to reload, on which we must
      * call reload() before moving them to `_mHeap` or to
      * `_mEndedUpstreamMsgIters`.
