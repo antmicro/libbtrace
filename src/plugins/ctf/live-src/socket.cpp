@@ -25,7 +25,7 @@ static std::string sockaddr_to_string(const sockaddr_in& addr)
     return std::string {p} + ":" + std::to_string(addr.sin_port);
 }
 
-CtfLiveSocketServer::CtfLiveSocketServer() :
+CtfLiveSocketServer::CtfLiveSocketServer(int port) :
     _mKeepRunning(true), _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
     _mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,7 +44,7 @@ CtfLiveSocketServer::CtfLiveSocketServer() :
     memset(&server, 0, sizeof(server));
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons(42674); // TODO: Configure from params in live-src
+    server.sin_port = htons(port);
     memset(server.sin_zero, '\0', sizeof(server.sin_zero));
     auto err = bind(_mSocketFd, reinterpret_cast<sockaddr *>(&server), sizeof(server));
     if (err != 0) {

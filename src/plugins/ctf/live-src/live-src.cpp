@@ -86,7 +86,6 @@ ctf_live_init(bt_self_component_source *self_comp_src,
 {
     (void) init_method_data;
     (void) config;
-    (void) params;
 
     auto *comp = new ctf_live_component;
     if (!comp) {
@@ -112,7 +111,15 @@ ctf_live_init(bt_self_component_source *self_comp_src,
         bt_self_component_source_add_output_port(self_comp_src, port->name.data(), port, nullptr);
     }
     try {
-        comp->server = bt2s::make_unique<CtfLiveSocketServer>();
+        unsigned port = 42674;
+        if (bt_value_is_map(params)) {
+            if (bt_value_map_has_entry(params, "port")) {
+                port = bt_value_integer_unsigned_get(
+                    bt_value_map_borrow_entry_value_const(params, "port"));
+            }
+        }
+
+        comp->server = bt2s::make_unique<CtfLiveSocketServer>(port);
     } catch (const bt2c::Error& e) {
         BT_CPPLOGE_APPEND_CAUSE_SPEC(s_logger, "Error initializing live socket server");
         return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;

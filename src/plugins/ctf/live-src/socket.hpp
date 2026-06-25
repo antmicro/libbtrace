@@ -53,7 +53,7 @@ class CtfLiveSocketMedium;
 class CtfLiveSocketServer
 {
 public:
-    CtfLiveSocketServer();
+    CtfLiveSocketServer(int port);
     ~CtfLiveSocketServer();
 
     std::unique_ptr<CtfLiveSocketMedium> create_medium();
