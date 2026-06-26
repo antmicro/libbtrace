@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -50,6 +51,9 @@ BT_OBJ_REF(bt_trace)
 BT_OBJ_REF(bt_stream)
 BT_OBJ_REF(bt_message)
 
+struct ctf_live_component;
+struct ctf_live_port_output;
+
 struct ctf_live_trace
 {
     bt2c::Logger logger;
@@ -82,6 +86,15 @@ struct ctf_live_component
 {
     std::unique_ptr<ctf_live_trace> trace;
     std::unique_ptr<CtfLiveSocketServer> server;
+    std::vector<ctf_live_port_output *> ports;
+};
+
+struct ctf_live_port_output
+{
+    ctf_live_component *comp;
+    std::string name;
+    uint8_t stream_id;
+    const ctf::src::DataStreamCls *data_stream_cls;
 };
 
 struct ctf_live_iterator
@@ -97,14 +110,6 @@ struct ctf_live_iterator
     bt_message_iterator_class_next_method_status next_saved_status =
         BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
     const bt_error *next_saved_error = nullptr;
-};
-
-struct ctf_live_port_output
-{
-    ctf_live_component *comp;
-    std::string name;
-    uint8_t stream_id;
-    const ctf::src::DataStreamCls *data_stream_cls;
 };
 
 bt_message_iterator_class_next_method_status

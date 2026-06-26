@@ -102,12 +102,17 @@ ctf_live_init(bt_self_component_source *self_comp_src,
     for (const auto& streamCls : comp->trace->cls()->dataStreamClasses()) {
         auto *port = new ctf_live_port_output;
         if (!port) {
+            for (auto *p : comp->ports) {
+                delete p;
+            }
+            delete comp;
             return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
         }
         port->comp = comp;
         port->stream_id = idx++;
         port->name = std::string {"out"} + std::to_string(port->stream_id);
         port->data_stream_cls = streamCls.get();
+        comp->ports.push_back(port);
         bt_self_component_source_add_output_port(self_comp_src, port->name.data(), port, nullptr);
     }
     try {
@@ -122,6 +127,10 @@ ctf_live_init(bt_self_component_source *self_comp_src,
         comp->server = bt2s::make_unique<CtfLiveSocketServer>(port);
     } catch (const bt2c::Error& e) {
         BT_CPPLOGE_APPEND_CAUSE_SPEC(s_logger, "Error initializing live socket server");
+        for (auto *p : comp->ports) {
+            delete p;
+        }
+        delete comp;
         return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
     }
 
@@ -146,10 +155,12 @@ ctf_live_query(bt_self_component_class_source *comp_class_src,
 void ctf_live_finalize(bt_self_component_source *component)
 {
     auto *comp = priv(component);
+    for (auto *port : comp->ports) {
+        delete port;
+    }
     if (comp) {
         delete comp;
     }
-    // TODO free/destroy ports
 }
 
 bt_message_iterator_class_initialize_method_status
