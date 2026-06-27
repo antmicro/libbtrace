@@ -124,7 +124,7 @@ ctf_live_init(bt_self_component_source *self_comp_src,
             }
         }
 
-        comp->server = bt2s::make_unique<CtfLiveSocketServer>(port);
+        comp->server = bt2s::make_unique<CtfLiveSocketServer>(static_cast<int>(port));
     } catch (const bt2c::Error& e) {
         BT_CPPLOGE_APPEND_CAUSE_SPEC(s_logger, "Error initializing live socket server");
         for (auto *p : comp->ports) {
