@@ -2,10 +2,7 @@
 #include <mutex>
 #include <thread>
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-
+#include "compat/socket.hpp"
 #include "cpp-common/bt2/exc.hpp"
 #include "cpp-common/bt2c/data-len.hpp"
 #include "cpp-common/bt2c/exc.hpp"
@@ -28,15 +25,21 @@ static std::string sockaddr_to_string(const sockaddr_in& addr)
 CtfLiveSocketServer::CtfLiveSocketServer(int port) :
     _mKeepRunning(true), _mLogger("SOCKET", "PLUGIN/CTF/LIVE", bt2c::Logger::Level::Info)
 {
+    if (bt_socket_init(_mLogger) != 0) {
+        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "Failed to init socket");
+    }
+
     _mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_mSocketFd == -1) {
-        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "socket() call failed: ret={}", _mSocketFd);
+    if (_mSocketFd == BT_INVALID_SOCKET) {
+        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "socket() call failed: {}",
+                                          bt_socket_errormsg());
     }
 
     // Set SO_REUSEADDR, so server can be immediately restarted if a failure
     // occurs, instead of potentially dying on address already in use.
     int optval = 1;
-    if (setsockopt(_mSocketFd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+    if (setsockopt(_mSocketFd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&optval),
+                   sizeof(int)) == BT_SOCKET_ERROR) {
         BT_CPPLOGW("setsockopt(SO_REUSEADDR) failed");
     }
 
@@ -48,11 +51,11 @@ CtfLiveSocketServer::CtfLiveSocketServer(int port) :
     memset(server.sin_zero, '\0', sizeof(server.sin_zero));
     auto err = bind(_mSocketFd, reinterpret_cast<sockaddr *>(&server), sizeof(server));
     if (err != 0) {
-        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "bind() failed: ret={}", err);
+        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "bind() failed: {}", bt_socket_errormsg());
     }
     err = listen(_mSocketFd, MAX_CONNECTIONS);
     if (err != 0) {
-        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "listen() failed: ret={}", err);
+        BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "listen() failed: {}", bt_socket_errormsg());
     }
     BT_CPPLOGI("Server listening at {}", sockaddr_to_string(server));
 
@@ -65,17 +68,18 @@ CtfLiveSocketServer::~CtfLiveSocketServer()
 {
     BT_CPPLOGD("Cleaning up socket server={}", fmt::ptr(this));
     _mKeepRunning = false;
-    if (_mClientFd > 0) {
-        shutdown(_mClientFd, SHUT_RDWR);
-        close(_mClientFd);
+    if (_mClientFd != BT_INVALID_SOCKET) {
+        shutdown(_mClientFd, BT_SHUT_RDWR);
+        bt_socket_close(_mClientFd);
     }
-    if (_mSocketFd > 0) {
-        shutdown(_mSocketFd, SHUT_RDWR);
-        close(_mSocketFd);
+    if (_mSocketFd != BT_INVALID_SOCKET) {
+        shutdown(_mSocketFd, BT_SHUT_RDWR);
+        bt_socket_close(_mSocketFd);
     }
     if (_mSocketThread.joinable()) {
         _mSocketThread.join();
     }
+    bt_socket_fini();
 }
 
 void CtfLiveSocketServer::_socketServerLoop()
@@ -87,17 +91,18 @@ void CtfLiveSocketServer::_socketServerLoop()
         BT_CPPLOGI("Awaiting client connection");
         _mClientFd =
             accept(_mSocketFd, reinterpret_cast<sockaddr *>(&client_addr), &client_addr_size);
-        if (_mClientFd < 0 && _mKeepRunning) {
-            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "accept() failed: ret={}", _mClientFd);
-        } else if (_mClientFd < 0) {
+        if (_mClientFd == BT_INVALID_SOCKET && _mKeepRunning) {
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "accept() failed: {}",
+                                              bt_socket_errormsg());
+        } else if (_mClientFd == BT_INVALID_SOCKET) {
             // In this case, the shutdown from the destructor force-closed the socket
             // and accept returned -1. In this case, return to the destructor that joined here
             break;
         }
 
         const auto cleanup = [this] {
-            shutdown(_mClientFd, SHUT_RDWR);
-            close(_mClientFd);
+            shutdown(_mClientFd, BT_SHUT_RDWR);
+            bt_socket_close(_mClientFd);
         };
 
         BT_CPPLOGI("Client connected ({}:{})", sockaddr_to_string(client_addr),
@@ -116,9 +121,10 @@ void CtfLiveSocketServer::_socketServerLoop()
 void CtfLiveSocketServer::_clientLoop()
 {
     while (_mKeepRunning) {
-        const auto n = recv(_mClientFd, _mReadBuf.data(), 1, 0);
-        if (n == -1) {
-            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "recv() failed: ret={}", errno);
+        const auto n = bt_socket_recv(_mClientFd, _mReadBuf.data(), 1, 0);
+        if (n == BT_SOCKET_ERROR) {
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "recv() failed: {}",
+                                              bt_socket_errormsg());
         }
         if (n == 0) {
             break;

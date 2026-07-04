@@ -16,6 +16,7 @@
 #include <mutex>
 #include <thread>
 
+#include "compat/socket.hpp"
 #include "cpp-common/bt2c/logging.hpp"
 
 #include "plugins/ctf/common/src/item-seq/medium.hpp"
@@ -61,15 +62,15 @@ public:
 private:
     static constexpr int MAX_CONNECTIONS = 1;
     static constexpr int INCOMING_BUF_SIZE = 4096;
-    using sock_type_t = int;
+    using sock_type_t = BT_SOCKET;
 
     void _clientLoop();
     void _socketServerLoop();
     void _pushData(bt2s::span<uint8_t>);
     std::atomic<bool> _mKeepRunning;
     std::thread _mSocketThread;
-    sock_type_t _mSocketFd;
-    sock_type_t _mClientFd;
+    sock_type_t _mSocketFd = BT_INVALID_SOCKET;
+    sock_type_t _mClientFd = BT_INVALID_SOCKET;
     std::array<uint8_t, INCOMING_BUF_SIZE> _mReadBuf;
     bt2c::Logger _mLogger;
     std::vector<std::unique_ptr<CtfLiveSocketFifo>> _mFifos;

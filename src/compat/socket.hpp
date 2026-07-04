@@ -15,10 +15,12 @@
 #ifdef __MINGW32__
 
 #    include <winsock2.h>
+#    include <ws2tcpip.h>
 
 #    define BT_INVALID_SOCKET INVALID_SOCKET
 #    define BT_SOCKET_ERROR   SOCKET_ERROR
 #    define BT_SOCKET         SOCKET
+#    define BT_SHUT_RDWR      SD_BOTH
 
 static inline int bt_socket_init(const bt2c::Logger& logger)
 {
@@ -249,6 +251,7 @@ static inline const char *bt_socket_errormsg(void)
 
 #else /* __MINGW32__ */
 
+#    include <arpa/inet.h>
 #    include <errno.h>
 #    include <glib.h>
 #    include <netdb.h>
@@ -259,6 +262,7 @@ static inline const char *bt_socket_errormsg(void)
 #    define BT_INVALID_SOCKET -1
 #    define BT_SOCKET_ERROR   -1
 #    define BT_SOCKET         int
+#    define BT_SHUT_RDWR      SHUT_RDWR
 
 static inline int bt_socket_init(const bt2c::Logger&)
 {
