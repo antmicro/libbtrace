@@ -93,8 +93,14 @@ ctf_live_init(bt_self_component_source *self_comp_src,
     }
     bt_self_component_set_data(bt_self_component_source_as_self_component(self_comp_src), comp);
 
+    std::string metadataPath = ".";
+    if (bt_value_is_map(params) && bt_value_map_has_entry(params, "metadata-path")) {
+        metadataPath =
+            bt_value_string_get(bt_value_map_borrow_entry_value_const(params, "metadata-path"));
+    }
+
     //  Parse the metadata file
-    comp->trace = ctf_live_trace_create(".", "trace", ctf::src::ClkClsCfg {},
+    comp->trace = ctf_live_trace_create(metadataPath.c_str(), "trace", ctf::src::ClkClsCfg {},
                                         static_cast<bt2::SelfComponent>(bt2::wrap(self_comp_src)));
     size_t idx = 0;
     //  Create an output port for each of the streams found in the metadata
