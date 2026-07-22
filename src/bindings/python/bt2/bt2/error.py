@@ -219,3 +219,7 @@ class _Error(Exception, abc.Sequence):
 
 class _MemoryError(_Error):
     """Raised when an operation fails due to memory issues."""
+
+
+class _AddressInUseSocketError(_Error):
+    """Raised when attempting to run the live plugin on a busy socket."""

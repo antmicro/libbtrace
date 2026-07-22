@@ -162,6 +162,9 @@ def _handle_func_status(status, msg=None):
     elif status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR:
         assert msg is not None
         raise bt2_error._MemoryError(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR:
+        assert msg is not None
+        raise bt2_error._AddressInUseSocketError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_END:
         if msg is None:
             raise Stop

@@ -50,6 +50,7 @@ from bt2.component import (
 from bt2.component_descriptor import ComponentDescriptor
 from bt2.error import (
     ComponentClassType,
+    _AddressInUseSocketError,
     _ComponentClassErrorCause,
     _ComponentErrorCause,
     _Error,
@@ -667,4 +668,5 @@ __all__ = [
     _ValueConst,
     create_value,
     __version__,
+    "_AddressInUseSocketError",
 ]

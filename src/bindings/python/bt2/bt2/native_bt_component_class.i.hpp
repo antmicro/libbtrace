@@ -127,6 +127,8 @@ static inline int py_exc_to_status_clear(bt_self_component_class *self_component
 
         if (PyErr_GivenExceptionMatches(exc, py_mod_bt2_exc_memory_error)) {
             status = __BT_FUNC_STATUS_MEMORY_ERROR;
+        } else if (PyErr_GivenExceptionMatches(exc, py_mod_bt2_exc_address_in_use_socket_error)) {
+            status = __BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR;
         } else {
             status = __BT_FUNC_STATUS_ERROR;
         }

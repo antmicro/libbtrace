@@ -16,6 +16,7 @@
 static PyObject *py_mod_bt2 = NULL;
 static PyObject *py_mod_bt2_exc_error_type = NULL;
 static PyObject *py_mod_bt2_exc_memory_error = NULL;
+static PyObject *py_mod_bt2_exc_address_in_use_socket_error = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
 static PyObject *py_mod_bt2_exc_unknown_object_type = NULL;
@@ -36,6 +37,9 @@ static void bt_bt2_init_from_bt2(void)
     BT_ASSERT(py_mod_bt2_exc_error_type);
     py_mod_bt2_exc_memory_error = PyObject_GetAttrString(py_mod_bt2, "_MemoryError");
     BT_ASSERT(py_mod_bt2_exc_memory_error);
+    py_mod_bt2_exc_address_in_use_socket_error =
+        PyObject_GetAttrString(py_mod_bt2, "_AddressInUseSocketError");
+    BT_ASSERT(py_mod_bt2_exc_address_in_use_socket_error);
     py_mod_bt2_exc_try_again_type = PyObject_GetAttrString(py_mod_bt2, "TryAgain");
     BT_ASSERT(py_mod_bt2_exc_try_again_type);
     py_mod_bt2_exc_stop_type = PyObject_GetAttrString(py_mod_bt2, "Stop");
