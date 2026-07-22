@@ -22,6 +22,8 @@
 #    define BT_SOCKET         SOCKET
 #    define BT_SHUT_RDWR      SD_BOTH
 
+#    define BT_SOCKET_ADDRESS_IN_USE_ERROR_CODE WSAEADDRINUSE
+
 static inline int bt_socket_init(const bt2c::Logger& logger)
 {
     WORD verreq;
@@ -65,6 +67,11 @@ static inline int bt_socket_recv(int sockfd, void *buf, size_t len, int flags)
 static inline int bt_socket_close(int fd)
 {
     return closesocket(fd);
+}
+
+static inline int bt_socket_get_last_error()
+{
+    return WSAGetLastError();
 }
 
 static inline bool bt_socket_interrupted(void)
@@ -264,6 +271,8 @@ static inline const char *bt_socket_errormsg(void)
 #    define BT_SOCKET         int
 #    define BT_SHUT_RDWR      SHUT_RDWR
 
+#    define BT_SOCKET_ADDRESS_IN_USE_ERROR_CODE EADDRINUSE
+
 static inline int bt_socket_init(const bt2c::Logger&)
 {
     return 0;
@@ -287,6 +296,11 @@ static inline int bt_socket_recv(int sockfd, void *buf, size_t len, int flags)
 static inline int bt_socket_close(int fd)
 {
     return close(fd);
+}
+
+static inline int bt_socket_get_last_error()
+{
+    return errno;
 }
 
 static inline bool bt_socket_interrupted(void)
