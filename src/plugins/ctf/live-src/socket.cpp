@@ -51,6 +51,10 @@ CtfLiveSocketServer::CtfLiveSocketServer(int port) :
     memset(server.sin_zero, '\0', sizeof(server.sin_zero));
     auto err = bind(_mSocketFd, reinterpret_cast<sockaddr *>(&server), sizeof(server));
     if (err != 0) {
+        if (bt_socket_get_last_error() == BT_SOCKET_ADDRESS_IN_USE_ERROR_CODE) {
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::AddressInUseSocketError,
+                                              "bind() failed: Address already in use...");
+        }
         BT_CPPLOGE_APPEND_CAUSE_AND_THROW(bt2c::Error, "bind() failed: {}", bt_socket_errormsg());
     }
     err = listen(_mSocketFd, MAX_CONNECTIONS);

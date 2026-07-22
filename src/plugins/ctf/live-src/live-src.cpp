@@ -131,6 +131,12 @@ ctf_live_init(bt_self_component_source *self_comp_src,
         }
 
         comp->server = bt2s::make_unique<CtfLiveSocketServer>(static_cast<int>(port));
+    } catch (const bt2c::AddressInUseSocketError& e) {
+        for (auto *p : comp->ports) {
+            delete p;
+        }
+        delete comp;
+        return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ADDRESS_IN_USE_SOCKET_ERROR;
     } catch (const bt2c::Error& e) {
         BT_CPPLOGE_APPEND_CAUSE_SPEC(s_logger, "Error initializing live socket server");
         for (auto *p : comp->ports) {
