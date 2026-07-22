@@ -906,6 +906,12 @@ typedef enum bt_component_class_initialize_method_status {
 	    User error.
 	*/
 	BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+
+	/*!
+	@brief
+	    User error.
+	*/
+	BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ADDRESS_IN_USE_SOCKET_ERROR		= __BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR,
 } bt_component_class_initialize_method_status;
 
 /*!

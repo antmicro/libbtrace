@@ -32,6 +32,11 @@
 # define __BT_FUNC_STATUS_MEMORY_ERROR		-12
 #endif
 
+/* Memory allocation error */
+#ifndef __BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR
+# define __BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR		-20
+#endif
+
 /* User function error */
 #ifndef __BT_FUNC_STATUS_USER_ERROR
 # define __BT_FUNC_STATUS_USER_ERROR		-2

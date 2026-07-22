@@ -641,6 +641,8 @@ const char *bt_common_func_status_string(int status)
 		return "OVERFLOW";
 	case __BT_FUNC_STATUS_MEMORY_ERROR:
 		return "MEMORY_ERROR";
+	case __BT_FUNC_STATUS_ADDRESS_IN_USE_SOCKET_ERROR:
+		return "ADDRESS_IN_USE_SOCKET_ERROR";
 	case __BT_FUNC_STATUS_USER_ERROR:
 		return "USER_ERROR";
 	case __BT_FUNC_STATUS_ERROR:
