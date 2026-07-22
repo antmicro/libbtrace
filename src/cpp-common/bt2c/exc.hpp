@@ -48,6 +48,17 @@ public:
 };
 
 /*
+ * AddressInUse socket error.
+ */
+class AddressInUseSocketError : public Error
+{
+public:
+    explicit AddressInUseSocketError() noexcept : Error {"AddressInUse socket error"}
+    {
+    }
+};
+
+/*
  * Memory error.
  */
 class MemoryError : public std::bad_alloc
